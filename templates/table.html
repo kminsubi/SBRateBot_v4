@@ -1,0 +1,491 @@
+<div class="card shadow-sm">
+
+
+    <div class="card-body">
+
+
+        <div class="row g-2">
+
+
+            <div class="col-md-6">
+
+
+                <input
+                    type="text"
+                    id="searchInput"
+                    class="form-control"
+                    placeholder="은행명, 상품명, 가입대상 검색"
+                >
+
+
+            </div>
+
+
+
+
+            <div class="col-md-3">
+
+
+                <select
+                    id="sortSelect"
+                    class="form-select"
+                >
+
+
+                    <option value="">
+                        기본 정렬
+                    </option>
+
+
+                    <option value="rate_desc">
+                        금리 높은 순
+                    </option>
+
+
+                    <option value="rate_asc">
+                        금리 낮은 순
+                    </option>
+
+
+                    <option value="bank">
+                        은행명 가나다순
+                    </option>
+
+
+                    <option value="date">
+                        공시일 최신순
+                    </option>
+
+
+                </select>
+
+
+            </div>
+
+
+
+
+            <div class="col-md-3">
+
+
+                <a href="/download_excel"
+                   class="btn btn-success w-100">
+
+
+                    📥 엑셀 다운로드
+
+
+                </a>
+
+
+            </div>
+
+
+
+        </div>
+
+
+    </div>
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+<!-- ==============================
+     금리 변동 필터
+============================== -->
+
+
+<div class="card shadow-sm mb-3">
+
+
+    <div class="card-body">
+
+
+        <div class="btn-group w-100">
+
+
+            <button
+                class="btn btn-primary change-filter active"
+                data-filter="all">
+
+
+                전체
+
+
+            </button>
+
+
+
+
+
+            <button
+                class="btn btn-outline-primary change-filter"
+                data-filter="up">
+
+
+                ▲ 금리 상승
+
+
+            </button>
+
+
+
+
+
+            <button
+                class="btn btn-outline-danger change-filter"
+                data-filter="down">
+
+
+                ▼ 금리 하락
+
+
+            </button>
+
+
+
+
+
+            <button
+                class="btn btn-outline-secondary change-filter"
+                data-filter="same">
+
+
+                - 변동 없음
+
+
+            </button>
+
+
+
+        </div>
+
+
+    </div>
+
+
+</div>
+
+
+
+
+
+
+
+<div class="card shadow-sm">
+
+
+
+
+
+<div class="card-header bg-primary text-white">
+
+
+    📊 금리 조회 기간
+
+
+
+    <div class="btn-group float-end">
+
+
+
+        <button class="btn btn-light rate-period-btn"
+                data-period="1m">
+
+            1개월
+
+        </button>
+
+
+
+        <button class="btn btn-light rate-period-btn"
+                data-period="3m">
+
+            3개월
+
+        </button>
+
+
+
+        <button class="btn btn-light rate-period-btn"
+                data-period="6m">
+
+            6개월
+
+        </button>
+
+
+
+        <button class="btn btn-light rate-period-btn active"
+                data-period="12m">
+
+            12개월
+
+        </button>
+
+
+
+        <button class="btn btn-light rate-period-btn"
+                data-period="24m">
+
+            24개월
+
+        </button>
+
+
+
+        <button class="btn btn-light rate-period-btn"
+                data-period="36m">
+
+            36개월
+
+        </button>
+
+
+
+    </div>
+
+
+</div>
+
+
+
+
+
+<table class="table table-bordered table-hover text-center"
+       id="rateTable">
+
+
+
+<thead class="table-dark">
+
+
+
+<tr>
+
+
+<th>
+은행명
+</th>
+
+
+<th>
+상품명
+</th>
+
+
+<th>
+가입대상
+</th>
+
+
+<th id="periodTitle">
+12개월 금리
+</th>
+
+
+<th>
+변동(전일比)
+</th>
+
+
+<th>
+공시일
+</th>
+
+
+
+</tr>
+
+
+
+</thead>
+
+
+
+
+
+<tbody id="rateBody">
+ {% for item in rates %}
+
+
+<tr class="rate-row"
+    data-change="{{ item.change_12 }}">
+
+
+
+<td>
+
+{{ item.bank }}
+
+</td>
+
+
+
+
+
+<td class="text-start product-name detail-product"
+    style="cursor:pointer">
+
+{{ item.product }}
+
+</td>
+
+
+
+
+
+<td class="text-start">
+
+{{ item.join_target }}
+
+</td>
+
+
+
+
+
+
+
+<td class="rate-value fw-bold text-primary"
+
+
+data-1m="{{ item.top_1m }}"
+data-3m="{{ item.top_3m }}"
+data-6m="{{ item.top_6m }}"
+data-12m="{{ item.top_12m }}"
+data-24m="{{ item.top_24m }}"
+data-36m="{{ item.top_36m }}"
+
+
+>
+
+
+{% if item.top_12m %}
+
+
+{{ "%.2f"|format(item.top_12m|float) }}%
+
+
+{% else %}
+
+
+-
+
+
+{% endif %}
+
+
+
+</td>
+
+
+
+
+
+
+
+
+
+<td class="change-value fw-bold"
+
+
+data-change-1m="{{ item.change_1 }}"
+data-change-3m="{{ item.change_3 }}"
+data-change-6m="{{ item.change_6 }}"
+data-change-12="{{ item.change_12 }}"
+data-change-24m="{{ item.change_24 }}"
+data-change-36m="{{ item.change_36 }}"
+
+
+>
+
+
+
+{% if item.change_12|float > 0 %}
+
+
+
+<span class="text-primary">
+
+
++{{ "%.2f"|format(item.change_12|float) }}%
+
+
+</span>
+
+
+
+{% elif item.change_12|float < 0 %}
+
+
+
+<span class="text-danger">
+
+
+▲{{ "%.2f"|format(item.change_12|abs|float) }}%
+
+
+</span>
+
+
+
+{% else %}
+
+
+
+-
+
+
+
+{% endif %}
+
+
+
+</td>
+
+
+
+
+
+
+
+<td>
+
+
+{{ item.reg_date[:10] }}
+
+
+</td>
+
+
+
+
+
+</tr>
+
+
+
+{% endfor %}
+
+
+
+
+
+</tbody>
+
+
+</table>
+
+
+</div>   

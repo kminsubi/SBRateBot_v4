@@ -1,0 +1,694 @@
+/* ===================================
+   SBRateBot V4 Dashboard CSS
+=================================== */
+
+
+* {
+
+    box-sizing:border-box;
+
+}
+
+
+
+body {
+
+    margin:0;
+
+    padding:20px;
+
+    background:#f5f7fa;
+
+    font-family:"Malgun Gothic", sans-serif;
+
+    color:#333;
+
+}
+
+
+
+.dashboard {
+
+    width:100%;
+
+    max-width:1600px;
+
+    margin:0 auto;
+
+}
+
+
+
+
+
+
+/* ===================================
+   상단 3분할
+=================================== */
+
+
+.top-grid {
+
+    display:grid;
+
+    grid-template-columns:
+
+    repeat(3, 1fr);
+
+    gap:15px;
+
+    margin-bottom:15px;
+
+}
+
+
+
+
+
+
+
+/* ===================================
+   하단 3분할
+=================================== */
+
+
+.dashboard-grid {
+
+    display:grid;
+
+    grid-template-columns:
+
+    repeat(3, 1fr);
+
+    gap:15px;
+
+    align-items:start;
+
+}
+
+
+
+
+
+.left-column {
+
+
+    display:flex;
+
+
+    flex-direction:column;
+
+
+    gap:15px;
+
+
+}
+
+
+
+
+
+
+
+/* ===================================
+   카드
+=================================== */
+
+
+.panel {
+
+
+    background:white;
+
+
+    border-radius:10px;
+
+
+    padding:15px;
+
+
+    box-shadow:
+
+    0 2px 8px rgba(0,0,0,0.08);
+
+
+}
+
+
+
+.panel h2 {
+
+
+    margin:0 0 12px;
+
+
+    font-size:16px;
+
+
+    font-weight:600;
+
+
+}
+
+
+
+
+
+
+
+/* ===================================
+   KPI
+=================================== */
+
+
+.kpi-mini {
+
+
+    display:grid;
+
+
+    grid-template-columns:repeat(2,1fr);
+
+
+    gap:10px;
+
+
+}
+
+
+
+.kpi-mini div {
+
+
+    background:#fafafa;
+
+
+    padding:10px;
+
+
+    border-radius:6px;
+
+
+}
+
+
+
+.kpi-mini span {
+
+
+    display:block;
+
+
+    font-size:13px;
+
+
+    color:#777;
+
+
+}
+
+
+
+.kpi-mini strong {
+
+
+    display:block;
+
+
+    margin-top:5px;
+
+
+    font-size:15px;
+
+
+}
+
+
+
+
+
+
+
+/* ===================================
+   Market Position
+=================================== */
+
+
+.position-summary {
+
+
+    display:grid;
+
+
+    grid-template-columns:repeat(2,1fr);
+
+
+    gap:8px;
+
+
+}
+
+
+
+.position-summary div {
+
+
+    display:flex;
+
+
+    justify-content:space-between;
+
+
+    align-items:center;
+
+
+    padding:8px;
+
+
+    border-bottom:1px solid #eee;
+
+
+}
+
+
+
+.position-summary span {
+
+
+    font-size:13px;
+
+
+    color:#666;
+
+
+}
+
+
+
+.position-summary strong {
+
+
+    font-size:13px;
+
+
+    font-weight:600;
+
+
+}
+
+
+
+
+
+
+
+/* ===================================
+   Table 공통
+=================================== */
+
+
+.panel table {
+
+
+    width:100%;
+
+
+    border-collapse:collapse;
+
+
+}
+
+
+
+.panel th {
+
+
+    background:#f7f7f7;
+
+
+    font-size:13px;
+
+
+    font-weight:600;
+
+
+    padding:8px;
+
+
+    text-align:center;
+
+
+}
+
+
+
+.panel td {
+
+
+    font-size:13px;
+
+
+    padding:8px;
+
+
+    text-align:center;
+
+
+    border-bottom:1px solid #eee;
+
+
+}
+
+
+
+
+
+
+
+
+/* ===================================
+   AI
+=================================== */
+
+
+#ai-summary {
+
+
+    font-size:13px;
+
+
+    line-height:1.6;
+
+
+}
+
+
+
+#ai-summary ul {
+
+
+    margin:0;
+
+
+    padding-left:18px;
+
+
+}
+
+
+
+
+
+
+
+/* ===================================
+   검색
+=================================== */
+
+
+#ai-question {
+
+
+    width:100%;
+
+
+    height:36px;
+
+
+    padding:8px;
+
+
+    font-size:13px;
+
+
+}
+
+
+
+#ai-search-btn {
+
+
+    width:100%;
+
+
+    height:32px;
+
+
+    margin-top:8px;
+
+
+    font-size:13px;
+
+
+}
+
+
+
+
+
+
+
+#product-search {
+
+
+    width:100%;
+
+
+    height:32px;
+
+
+    margin:10px 0;
+
+
+    padding:8px;
+
+
+    font-size:13px;
+
+
+}
+
+
+
+
+
+
+
+/* ===================================
+   상품 탭
+=================================== */
+
+
+.product-tabs,
+.period-filter {
+
+
+    display:flex;
+
+
+    gap:8px;
+
+
+    margin-bottom:10px;
+
+
+}
+
+
+
+.product-tabs button,
+.period-filter button {
+
+
+    padding:6px 12px;
+
+
+    font-size:13px;
+
+
+    border:1px solid #ddd;
+
+
+    background:white;
+
+
+    border-radius:5px;
+
+
+}
+
+
+
+.product-tabs button.active,
+.period-filter button.active {
+
+
+    font-weight:bold;
+
+
+}
+
+
+
+
+
+
+
+/* ===================================
+   증감
+=================================== */
+
+
+.rate-change {
+
+
+    font-weight:600;
+
+
+}
+
+
+
+.rate-change.increase {
+
+
+    color:#1565c0;
+
+
+}
+
+
+
+.rate-change.decrease {
+
+
+    color:#d32f2f;
+
+
+}
+
+
+
+
+
+
+
+/* ===================================
+   화면 축소 대응
+=================================== */
+
+
+@media(max-width:900px){
+
+    .top-grid,
+    .dashboard-grid {
+
+        grid-template-columns:
+        0.8fr 1.1fr 1fr;
+
+    }
+
+}
+
+
+
+
+.left-column {
+
+    display:flex !important;
+
+    flex-direction:column !important;
+
+    gap:15px !important;
+
+}
+
+/* ===================================
+   금융지주 비교 헤더 줄바꿈 방지
+=================================== */
+
+
+#financial-table th {
+
+    white-space:nowrap;
+
+}
+
+
+/* 짧은 컬럼 최소폭 확보 */
+
+#financial-table th:nth-child(1),
+#financial-table td:nth-child(1) {
+
+    width:45px;
+
+    white-space:nowrap;
+
+}
+
+
+
+#financial-table th:nth-child(4),
+#financial-table td:nth-child(4) {
+
+    width:65px;
+
+    white-space:nowrap;
+
+}
+
+
+
+#financial-table th:nth-child(5),
+#financial-table td:nth-child(5) {
+
+    width:75px;
+
+    white-space:nowrap;
+
+}
+
+/* ===================================
+   금융지주 비교 헤더 줄바꿈 방지
+=================================== */
+
+
+#financial-table th {
+
+    white-space:nowrap;
+
+}
+
+
+/* 짧은 컬럼 최소폭 확보 */
+
+#financial-table th:nth-child(1),
+#financial-table td:nth-child(1) {
+
+    width:45px;
+
+    white-space:nowrap;
+
+}
+
+
+
+#financial-table th:nth-child(4),
+#financial-table td:nth-child(4) {
+
+    width:65px;
+
+    white-space:nowrap;
+
+}
+
+
+
+#financial-table th:nth-child(5),
+#financial-table td:nth-child(5) {
+
+    width:75px;
+
+    white-space:nowrap;
+
+}

@@ -1,0 +1,79 @@
+body {
+
+    font-family: "Malgun Gothic", sans-serif;
+
+}
+
+
+
+/* 긴 상품명 처리 */
+
+.product-name {
+
+    word-break: break-all;
+
+}
+
+
+
+/* 금리 강조 */
+
+.rate-value {
+
+    font-size:16px;
+
+    font-weight:bold;
+
+}
+
+
+
+/* 테이블 */
+
+#rateTable {
+
+    width:100%;
+
+}
+
+
+
+/* 테이블 헤더 */
+
+#rateTable thead th {
+
+    background-color:#212529 !important;
+
+    color:white !important;
+
+    text-align:center;
+
+}
+
+
+
+/* 헤더 클릭 정렬 */
+
+.sortable {
+
+    cursor:pointer;
+
+}
+
+
+
+.sortable:hover {
+
+    background-color:#343a40 !important;
+
+}
+
+
+
+/* 모바일 대응 */
+
+.table-responsive {
+
+    overflow-x:auto;
+
+}

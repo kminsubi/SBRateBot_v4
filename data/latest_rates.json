@@ -1,0 +1,110 @@
+{
+  "market": {
+    " 기준": "12개월 정기예금 최고금리",
+    "product_count": 128,
+    "max_rate": 4.55,
+    "average_rate": 4.32,
+    "min_rate": 3.80,
+    "daily_change": "-0.03%"
+  },
+
+
+  "woori": {
+
+    "market_rank": 15,
+
+    "financial_rank": 2,
+
+    "bank": "우리금융저축은행",
+
+    "product": "우리 WON 정기예금",
+
+    "rate": 4.35,
+
+    "highest_gap": -0.20,
+
+    "average_gap": 0.03,
+
+    "lowest_gap": 0.15
+
+  },
+
+
+  "financial_savings": [
+
+    {
+      "rank":2,
+      "bank":"우리금융저축은행",
+      "product":"우리 WON 정기예금",
+      "rate":4.35,
+      "change":"-"
+    },
+
+
+    {
+      "rank":1,
+      "bank":"신한저축은행",
+      "product":"쏠편한 정기예금",
+      "rate":4.50,
+      "change":"+0.05"
+    },
+
+
+    {
+      "rank":3,
+      "bank":"하나저축은행",
+      "product":"하나 정기예금",
+      "rate":4.30,
+      "change":"-"
+    },
+
+
+    {
+      "rank":4,
+      "bank":"KB저축은행",
+      "product":"KB e-plus 정기예금",
+      "rate":4.25,
+      "change":"-"
+    }
+
+  ],
+
+
+  "top10":[
+
+    {
+      "rank":1,
+      "bank":"A저축은행",
+      "product":"정기예금",
+      "rate":4.55,
+      "change":"+0.05"
+    }
+
+  ],
+
+
+  "products":[
+
+    {
+      "category":"정기예금",
+      "period":"12개월",
+      "bank":"우리금융저축은행",
+      "product":"우리 WON 정기예금",
+      "rate":4.35,
+      "change":"-"
+    }
+
+  ],
+
+
+  "ai_summary":[
+
+    "12개월 정기예금 평균금리는 4.32% 수준입니다.",
+
+    "최고금리는 4.55%이며 우리금융저축은행은 시장 평균 대비 높은 수준입니다.",
+
+    "금융지주 계열 저축은행 중 우리금융저축은행은 2위를 유지하고 있습니다."
+
+  ]
+
+}

@@ -1,158 +1,185 @@
 /* ===================================
    SBRateBot V4 Dashboard CSS
+   Professional Financial Dashboard
 =================================== */
 
 
 * {
-
-    box-sizing:border-box;
-
+    box-sizing: border-box;
 }
-
 
 
 body {
+    margin: 0;
+    padding: 14px 20px 20px;
 
-    margin:0;
+    background: #f3f6fa;
 
-    padding:20px;
+    font-family:
+        "Malgun Gothic",
+        "Apple SD Gothic Neo",
+        Arial,
+        sans-serif;
 
-    background:#f5f7fa;
-
-    font-family:"Malgun Gothic", sans-serif;
-
-    color:#333;
-
+    color: #1f2937;
 }
-
 
 
 .dashboard {
-
-    width:100%;
-
-    max-width:1600px;
-
-    margin:0 auto;
-
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
 }
 
 
 
+/* ===================================
+   SYSTEM HEADER
+=================================== */
+
+
+.system-header.slim-header {
+    height: 80px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 22px;
+
+    margin-bottom: 80px;
+
+    background: #ffffff;
+
+    border: 1px solid #e5eaf0;
+    border-radius: 10px;
+
+    box-shadow:
+        0 2px 8px rgba(15, 23, 42, 0.05);
+}
+
+
+.slim-header-title {
+    display: flex;
+    align-items: center;
+}
+
+
+.slim-header-title h1 {
+    margin: 0;
+
+    font-size: 22px;
+    font-weight: 700;
+
+    letter-spacing: -0.7px;
+
+    color: #172033;
+}
+
+
+.slim-header-status {
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+}
+
+
+.slim-header-status strong {
+    font-size: 12px;
+    font-weight: 700;
+
+    letter-spacing: 0.5px;
+
+    color: #16803c;
+}
+
+
+.online-dot {
+    width: 8px;
+    height: 8px;
+
+    display: inline-block;
+
+    background: #22c55e;
+
+    border-radius: 50%;
+
+    box-shadow:
+        0 0 0 4px rgba(34, 197, 94, 0.12);
+}
 
 
 
 /* ===================================
-   상단 3분할
+   DASHBOARD GRID
 =================================== */
+
+
+.top-grid,
+.dashboard-grid {
+    display: grid;
+
+    grid-template-columns:
+        0.8fr 1.1fr 1fr;
+
+    gap: 14px;
+
+    align-items: start;
+}
 
 
 .top-grid {
+    margin-bottom: 14px;
 
-    display:grid;
-
-    grid-template-columns:
-
-    repeat(3, 1fr);
-
-    gap:15px;
-
-    margin-bottom:15px;
-
+    align-items: stretch;
 }
 
 
-
-
-
-
-
-/* ===================================
-   하단 3분할
-=================================== */
-
-
-.dashboard-grid {
-
-    display:grid;
-
-    grid-template-columns:
-
-    repeat(3, 1fr);
-
-    gap:15px;
-
-    align-items:start;
-
+.top-grid > .panel {
+    height: 100%;
 }
-
-
-
 
 
 .left-column {
+    display: flex;
 
+    flex-direction: column;
 
-    display:flex;
-
-
-    flex-direction:column;
-
-
-    gap:15px;
-
-
+    gap: 14px;
 }
 
 
 
-
-
-
-
 /* ===================================
-   카드
+   PANEL
 =================================== */
 
 
 .panel {
+    background: #ffffff;
 
+    border: 1px solid #e5eaf0;
 
-    background:white;
+    border-radius: 10px;
 
-
-    border-radius:10px;
-
-
-    padding:15px;
-
+    padding: 15px;
 
     box-shadow:
-
-    0 2px 8px rgba(0,0,0,0.08);
-
-
+        0 2px 8px rgba(15, 23, 42, 0.05);
 }
-
 
 
 .panel h2 {
+    margin: 0 0 13px;
 
+    font-size: 15px;
+    font-weight: 700;
 
-    margin:0 0 12px;
+    letter-spacing: -0.3px;
 
-
-    font-size:16px;
-
-
-    font-weight:600;
-
-
+    color: #172033;
 }
-
-
-
-
 
 
 
@@ -162,533 +189,755 @@ body {
 
 
 .kpi-mini {
+    display: grid;
 
+    grid-template-columns:
+        repeat(2, 1fr);
 
-    display:grid;
-
-
-    grid-template-columns:repeat(2,1fr);
-
-
-    gap:10px;
-
-
+    gap: 8px;
 }
-
 
 
 .kpi-mini div {
+    min-height: 58px;
 
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 
-    background:#fafafa;
+    padding: 9px 11px;
 
+    background: #f7f9fc;
 
-    padding:10px;
-
-
-    border-radius:6px;
-
-
+    border: 1px solid #edf0f4;
+    border-radius: 7px;
 }
-
 
 
 .kpi-mini span {
+    display: block;
 
+    font-size: 11px;
+    font-weight: 500;
 
-    display:block;
-
-
-    font-size:13px;
-
-
-    color:#777;
-
-
+    color: #7b8494;
 }
-
 
 
 .kpi-mini strong {
+    display: block;
 
+    margin-top: 4px;
 
-    display:block;
+    font-size: 16px;
+    font-weight: 700;
 
-
-    margin-top:5px;
-
-
-    font-size:15px;
-
-
+    color: #172033;
 }
 
 
 
-
-
-
-
 /* ===================================
-   Market Position
+   MARKET POSITION
 =================================== */
 
 
-.position-summary {
+.market-position-panel {
+    position: relative;
 
+    overflow: hidden;
 
-    display:grid;
-
-
-    grid-template-columns:repeat(2,1fr);
-
-
-    gap:8px;
-
-
+    padding: 17px;
 }
 
 
+.market-position-panel::before {
+    content: "";
 
-.position-summary div {
+    position: absolute;
 
+    top: 0;
+    left: 0;
 
-    display:flex;
+    width: 4px;
+    height: 100%;
 
-
-    justify-content:space-between;
-
-
-    align-items:center;
-
-
-    padding:8px;
-
-
-    border-bottom:1px solid #eee;
-
-
+    background: #334155;
 }
 
 
+.market-position-header {
+    display: flex;
 
-.position-summary span {
+    align-items: flex-start;
+    justify-content: space-between;
 
+    gap: 12px;
 
-    font-size:13px;
-
-
-    color:#666;
-
-
+    margin-bottom: 14px;
 }
 
 
+.market-position-label {
+    display: block;
 
-.position-summary strong {
+    margin-bottom: 4px;
 
+    font-size: 9px;
+    font-weight: 700;
 
-    font-size:13px;
+    letter-spacing: 1.2px;
 
-
-    font-weight:600;
-
-
+    color: #8a94a3;
 }
 
 
+.market-position-header h2 {
+    margin: 0;
+
+    font-size: 16px;
+    font-weight: 700;
+
+    color: #172033;
+}
 
 
+.market-position-badge {
+    min-width: 76px;
+
+    padding: 7px 9px;
+
+    text-align: right;
+
+    background: #f7f9fc;
+
+    border: 1px solid #e8ecf1;
+    border-radius: 7px;
+}
+
+
+.market-position-badge span {
+    display: block;
+
+    margin-bottom: 2px;
+
+    font-size: 9px;
+
+    color: #8791a1;
+}
+
+
+.market-position-badge strong {
+    font-size: 17px;
+    font-weight: 700;
+
+    color: #172033;
+}
 
 
 
 /* ===================================
-   Table 공통
+   MARKET RANK GRID
+=================================== */
+
+
+.market-rank-grid {
+
+    display:grid;
+
+    grid-template-columns:repeat(2,1fr);
+
+    gap:12px;
+
+    margin-top:12px;
+
+}
+
+
+
+.market-rank-card {
+
+    min-height:60px;
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:center;
+
+    justify-content:center;
+
+    background:#f8fafc;
+
+    border:1px solid #edf0f4;
+
+    border-radius:8px;
+
+}
+
+
+
+.market-rank-card > span {
+
+    font-size:11px;
+
+    color:#697386;
+
+    margin-bottom:5px;
+
+}
+
+
+
+.market-rank-card > strong {
+
+    font-size:16px;
+
+    font-weight:700;
+
+}
+
+
+
+.market-rank-card.primary {
+
+    background:#eff6ff;
+
+    border-color:#bfdbfe;
+
+}
+
+
+
+.market-rank-card.primary > strong {
+
+    color:#2563eb;
+
+}
+
+
+
+/* ===================================
+   MARKET GAP
+=================================== */
+
+
+.market-gap-list {
+
+    display:grid;
+
+    grid-template-columns:repeat(3,1fr);
+
+    gap:12px;
+
+    margin-top:12px;
+
+}
+
+
+
+.market-gap-list > div {
+
+    min-height:60px;
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:center;
+
+    justify-content:center;
+
+    border:1px solid #edf0f4;
+
+    border-radius:8px;
+
+    background:#f8fafc;
+
+}
+
+
+
+.market-gap-list > div > span {
+
+    font-size:11px;
+
+    color:#697386;
+
+    margin-bottom:5px;
+
+}
+
+
+
+.market-gap-list > div > strong {
+
+    font-size:15px;
+
+    font-weight:700;
+
+}
+
+
+
+/* ===================================
+   TABLE
 =================================== */
 
 
 .panel table {
 
-
     width:100%;
-
 
     border-collapse:collapse;
 
+    table-layout:fixed;
 
 }
 
+
+.panel th,
+.panel td {
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+    white-space:nowrap;
+
+}
 
 
 .panel th {
+    padding: 8px 6px;
 
+    background: #f5f7fa;
 
-    background:#f7f7f7;
+    border-top: 1px solid #e8ecf1;
+    border-bottom: 1px solid #e1e6ec;
 
+    font-size: 11px;
+    font-weight: 700;
 
-    font-size:13px;
+    color: #596273;
 
+    text-align: center;
 
-    font-weight:600;
-
-
-    padding:8px;
-
-
-    text-align:center;
-
-
+    white-space: nowrap;
 }
-
 
 
 .panel td {
+    padding: 8px 6px;
 
+    border-bottom: 1px solid #edf0f4;
 
-    font-size:13px;
+    font-size: 12px;
 
+    color: #374151;
 
-    padding:8px;
-
-
-    text-align:center;
-
-
-    border-bottom:1px solid #eee;
-
-
+    text-align: center;
 }
 
 
+.panel tbody tr {
+    transition: background 0.15s ease;
+}
 
 
+.panel tbody tr:hover {
+    background: #f8fafc;
+}
 
+
+.panel td strong {
+    font-weight: 700;
+
+    color: #172033;
+}
 
 
 
 /* ===================================
-   AI
+   RANK
+=================================== */
+
+
+.top1 {
+    font-weight: 700;
+
+    color: #b7791f !important;
+}
+
+
+.top2 {
+    font-weight: 700;
+
+    color: #64748b !important;
+}
+
+
+.top3 {
+    font-weight: 700;
+
+    color: #9a5b2b !important;
+}
+
+
+
+/* ===================================
+   AI SUMMARY
 =================================== */
 
 
 #ai-summary {
+    font-size: 12px;
 
+    line-height: 1.65;
 
-    font-size:13px;
-
-
-    line-height:1.6;
-
-
+    color: #4b5563;
 }
-
 
 
 #ai-summary ul {
+    margin: 0;
 
-
-    margin:0;
-
-
-    padding-left:18px;
-
-
+    padding-left: 18px;
 }
 
 
-
-
+#ai-summary li {
+    margin-bottom: 4px;
+}
 
 
 
 /* ===================================
-   검색
+   AI SEARCH
 =================================== */
 
 
 #ai-question {
+    width: 100%;
+    height: 36px;
 
+    padding: 0 11px;
 
-    width:100%;
+    font-size: 12px;
 
+    color: #374151;
 
-    height:36px;
+    background: #f8fafc;
 
+    border: 1px solid #dfe5ec;
+    border-radius: 6px;
 
-    padding:8px;
-
-
-    font-size:13px;
-
-
+    outline: none;
 }
 
 
+#ai-question:focus {
+    background: #ffffff;
 
-#ai-search-btn {
+    border-color: #64748b;
 
-
-    width:100%;
-
-
-    height:32px;
-
-
-    margin-top:8px;
-
-
-    font-size:13px;
-
-
+    box-shadow:
+        0 0 0 3px rgba(100, 116, 139, 0.1);
 }
 
 
+#ai-answer {
+    min-height: 58px;
 
+    margin-top: 10px;
 
+    padding: 10px 11px;
 
+    background: #f7f9fc;
 
+    border: 1px solid #edf0f4;
+    border-radius: 7px;
 
-#product-search {
+    font-size: 12px;
 
+    line-height: 1.6;
 
-    width:100%;
+    color: #4b5563;
 
-
-    height:32px;
-
-
-    margin:10px 0;
-
-
-    padding:8px;
-
-
-    font-size:13px;
-
-
+    white-space: pre-line;
 }
-
-
-
-
 
 
 
 /* ===================================
-   상품 탭
+   PRODUCT SEARCH
+=================================== */
+
+
+#product-search {
+    width: 100%;
+    height: 34px;
+
+    margin: 9px 0;
+
+    padding: 0 10px;
+
+    font-size: 12px;
+
+    background: #f8fafc;
+
+    border: 1px solid #dfe5ec;
+    border-radius: 6px;
+
+    outline: none;
+}
+
+
+#product-search:focus {
+    background: #ffffff;
+
+    border-color: #64748b;
+
+    box-shadow:
+        0 0 0 3px rgba(100, 116, 139, 0.1);
+}
+
+
+
+/* ===================================
+   PRODUCT FILTER
 =================================== */
 
 
 .product-tabs,
 .period-filter {
+    display: flex;
 
+    gap: 5px;
 
-    display:flex;
+    margin-bottom: 8px;
 
-
-    gap:8px;
-
-
-    margin-bottom:10px;
-
-
+    flex-wrap: wrap;
 }
-
 
 
 .product-tabs button,
 .period-filter button {
+    min-height: 29px;
 
+    padding: 5px 10px;
 
-    padding:6px 12px;
+    font-size: 11px;
+    font-weight: 600;
 
+    color: #687386;
 
-    font-size:13px;
+    background: #ffffff;
 
+    border: 1px solid #dfe5ec;
+    border-radius: 5px;
 
-    border:1px solid #ddd;
-
-
-    background:white;
-
-
-    border-radius:5px;
-
-
+    cursor: pointer;
 }
-
 
 
 .product-tabs button.active,
 .period-filter button.active {
+    color: #ffffff;
 
+    background: #334155;
 
-    font-weight:bold;
-
-
+    border-color: #334155;
 }
 
 
 
-
-
-
-
 /* ===================================
-   증감
+   RATE CHANGE
 =================================== */
 
 
 .rate-change {
+    font-weight: 700;
 
-
-    font-weight:600;
-
-
+    white-space: nowrap;
 }
-
 
 
 .rate-change.increase {
-
-
-    color:#1565c0;
-
-
+    color: #1565c0;
 }
-
 
 
 .rate-change.decrease {
-
-
-    color:#d32f2f;
-
-
+    color: #d32f2f;
 }
-
-
-
-
 
 
 
 /* ===================================
-   화면 축소 대응
+   TABLE COLUMN
 =================================== */
 
 
-@media(max-width:900px){
+#financial-table th:nth-child(1),
+#financial-table td:nth-child(1),
+#market-table th:nth-child(1),
+#market-table td:nth-child(1),
+#product-table th:nth-child(1),
+#product-table td:nth-child(1){
+
+    width:50px;
+
+}
+
+
+#financial-table th:nth-child(2),
+#financial-table td:nth-child(2),
+#market-table th:nth-child(2),
+#market-table td:nth-child(2),
+#product-table th:nth-child(2),
+#product-table td:nth-child(2){
+
+    width:130px;
+
+}
+
+
+#financial-table th:nth-child(3),
+#financial-table td:nth-child(3),
+#market-table th:nth-child(3),
+#market-table td:nth-child(3),
+#product-table th:nth-child(3),
+#product-table td:nth-child(3){
+
+    width:auto;
+
+}
+
+
+#financial-table th:nth-child(4),
+#financial-table td:nth-child(4),
+#market-table th:nth-child(4),
+#market-table td:nth-child(4),
+#product-table th:nth-child(4),
+#product-table td:nth-child(4){
+
+    width:70px;
+
+}
+
+
+#financial-table th:nth-child(5),
+#financial-table td:nth-child(5),
+#market-table th:nth-child(5),
+#market-table td:nth-child(5),
+#product-table th:nth-child(5),
+#product-table td:nth-child(5){
+
+    width:80px;
+
+}
+
+
+
+/* ===================================
+   RESPONSIVE
+=================================== */
+
+@media(max-width: 1100px) {
+
 
     .top-grid,
     .dashboard-grid {
 
-        grid-template-columns:
-        0.8fr 1.1fr 1fr;
+        grid-template-columns:1fr;
 
     }
 
-}
+
+
+    .market-position-header {
+
+        flex-direction:column;
+
+        gap:12px;
+
+    }
 
 
 
+    .market-position-badge {
 
-.left-column {
+        width:100%;
 
-    display:flex !important;
+        text-align:center;
 
-    flex-direction:column !important;
-
-    gap:15px !important;
-
-}
-
-/* ===================================
-   금융지주 비교 헤더 줄바꿈 방지
-=================================== */
-
-
-#financial-table th {
-
-    white-space:nowrap;
-
-}
-
-
-/* 짧은 컬럼 최소폭 확보 */
-
-#financial-table th:nth-child(1),
-#financial-table td:nth-child(1) {
-
-    width:45px;
-
-    white-space:nowrap;
-
-}
+    }
 
 
 
-#financial-table th:nth-child(4),
-#financial-table td:nth-child(4) {
+    .market-gap-list {
 
-    width:65px;
+        display:grid;
 
-    white-space:nowrap;
+        grid-template-columns:repeat(3,1fr);
 
-}
+        gap:10px;
 
-
-
-#financial-table th:nth-child(5),
-#financial-table td:nth-child(5) {
-
-    width:75px;
-
-    white-space:nowrap;
-
-}
-
-/* ===================================
-   금융지주 비교 헤더 줄바꿈 방지
-=================================== */
-
-
-#financial-table th {
-
-    white-space:nowrap;
-
-}
-
-
-/* 짧은 컬럼 최소폭 확보 */
-
-#financial-table th:nth-child(1),
-#financial-table td:nth-child(1) {
-
-    width:45px;
-
-    white-space:nowrap;
-
-}
+    }
 
 
 
-#financial-table th:nth-child(4),
-#financial-table td:nth-child(4) {
+    .market-rank-card,
+    .market-gap-list div {
 
-    width:65px;
+        text-align:center;
 
-    white-space:nowrap;
-
-}
+    }
 
 
 
-#financial-table th:nth-child(5),
-#financial-table td:nth-child(5) {
+    .market-rank-card span,
+    .market-gap-list span {
 
-    width:75px;
+        display:block;
 
-    white-space:nowrap;
+        font-size:11px;
+
+        margin-bottom:4px;
+
+    }
+
+
+
+    .market-rank-card strong,
+    .market-gap-list strong {
+
+        display:block;
+
+        font-size:16px;
+
+        font-weight:700;
+
+    }
+
+
+
+    table {
+
+        font-size:12px;
+
+    }
+
+
+
+    th,
+    td {
+
+        padding:8px 6px;
+
+    }
+
 
 }

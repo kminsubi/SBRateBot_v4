@@ -1,22 +1,42 @@
 /* ===================================
    SBRateBot V4 Dashboard JS
+   Full Replacement Version
 =================================== */
+
+
+let productData = [];
+
+let selectedCategory = "정기예금";
+
+let selectedPeriod = "12개월";
+
+let aiTimer = null;
+
 
 
 document.addEventListener(
     "DOMContentLoaded",
     function(){
 
+
         console.log(
             "SBRateBot V4 Dashboard Loaded"
         );
 
+
         initDashboard();
+
+        initProductFilter();
+
+        initProductSearch();
+
+        initAISearch();
+
+        initAIAutoSearch();
+
 
     }
 );
-
-
 
 
 
@@ -40,11 +60,6 @@ async function initDashboard(){
 
 
 
-
-
-
-
-
 /* ===================================
    KPI
 =================================== */
@@ -57,12 +72,13 @@ async function loadKPI(){
 
 
         const response =
-        await fetch("/api/kpi");
+        await fetch(
+            "/api/kpi"
+        );
 
 
         const data =
         await response.json();
-
 
 
         setText(
@@ -90,14 +106,14 @@ async function loadKPI(){
 
 
     }
-
-
     catch(error){
+
 
         console.error(
             "KPI ERROR",
             error
         );
+
 
     }
 
@@ -106,15 +122,9 @@ async function loadKPI(){
 
 
 
-
-
-
-
-
-/* ===================================
-   우리금융 Market Position
-=================================== */
-
+// ===================================
+// 우리금융 Market Position
+// ===================================
 
 async function loadWoori(){
 
@@ -123,11 +133,20 @@ async function loadWoori(){
 
 
         const response =
-        await fetch("/api/woori");
+        await fetch(
+            "/api/woori"
+        );
 
 
         const data =
         await response.json();
+
+
+
+        setText(
+            "#woori-rate",
+            Number(data.rate || 0).toFixed(2) + "%"
+        );
 
 
 
@@ -137,55 +156,63 @@ async function loadWoori(){
         );
 
 
-        setText(
-            "#financial-rank",
-            data.financial_rank + "위"
-        );
-
 
         setText(
-            "#woori-rate",
-            data.rate.toFixed(2) + "%"
+            "#basis-product",
+            data.basis_product || "-"
         );
 
 
 
-        document.querySelector(
-            "#average-gap"
-        ).innerHTML =
-        formatGap(
-            data.average_gap
+        setText(
+            "#basis-product-card",
+            data.basis_product || "-"
         );
 
 
 
-        document.querySelector(
-            "#highest-gap"
-        ).innerHTML =
-        formatGap(
-            data.highest_gap
+        setText(
+            "#current-rate",
+            Number(data.rate || 0).toFixed(2) + "%"
         );
 
 
 
-        document.querySelector(
-            "#lowest-gap"
-        ).innerHTML =
-        formatGap(
-            data.lowest_gap
+        // 아래 3개는 HTML 색상 표시 필요하므로 setHTML 유지
+
+        setHTML(
+            "#average-gap",
+            formatGap(
+                data.average_gap
+            )
         );
 
+
+        setHTML(
+            "#highest-gap",
+            formatGap(
+                data.highest_gap
+            )
+        );
+
+
+        setHTML(
+            "#lowest-gap",
+            formatGap(
+                data.lowest_gap
+            )
+        );
 
 
     }
-
-
     catch(error){
+
 
         console.error(
             "WOORI ERROR",
             error
         );
+
 
     }
 
@@ -195,8 +222,36 @@ async function loadWoori(){
 
 
 
+// ===================================
+// 증감 표시
+// ===================================
+
+function formatGap(value){
+
+    let num =
+        Number(value || 0);
 
 
+    if(num > 0){
+
+        return "+" +
+            num.toFixed(2)
+            + "%";
+
+    }
+
+
+    if(num < 0){
+
+        return num.toFixed(2)
+            + "%";
+
+    }
+
+
+    return "0.00%";
+
+}
 
 
 
@@ -212,7 +267,9 @@ async function loadFinancial(){
 
 
         const response =
-        await fetch("/api/financial");
+        await fetch(
+            "/api/financial"
+        );
 
 
         const data =
@@ -220,68 +277,125 @@ async function loadFinancial(){
 
 
 
-        const table =
-        document.querySelector(
-            "#financial-table"
+        // 기존 금융지주 비교표 유지
+        renderRateTable(
+            "#financial-table",
+            data
         );
 
 
-        if(!table) return;
+
+        // ===================================
+        // 4대 금융 순위 표시
+        // ===================================
+
+
+        const financialList = data.filter(
+            function(item){
+
+
+                const bank =
+                String(
+                    item.bank || ""
+                );
+
+
+                return (
+
+                    bank.includes("우리금융")
+
+                    ||
+
+                    bank.includes("신한")
+
+                    ||
+
+                    bank.includes("하나")
+
+                    ||
+
+                    bank.includes("KB")
+
+                );
+
+
+            }
+        );
 
 
 
-        table.innerHTML="";
+        financialList.sort(
+            function(a,b){
+
+
+                return Number(b.rate)
+                -
+                Number(a.rate);
+
+
+            }
+        );
 
 
 
-        data.forEach(item=>{
+        const wooriRank =
+        financialList.findIndex(
+            function(item){
 
 
-            const row =
-            document.createElement("tr");
+                return String(
+                    item.bank || ""
+                )
+                .includes(
+                    "우리금융"
+                );
 
 
-            row.innerHTML = `
-
-            <td>
-                ${item.rank}위
-            </td>
-
-            <td>
-                ${item.bank}
-            </td>
-
-            <td>
-                ${item.product}
-            </td>
-
-            <td>
-                ${item.rate.toFixed(2)}%
-            </td>
-
-            <td>
-                ${formatChange(item.change)}
-            </td>
-
-            `;
+            }
+        );
 
 
-            table.appendChild(row);
+
+        if(
+            wooriRank >= 0
+        ){
 
 
-        });
+            setText(
+                "#financial-rank",
+                (wooriRank + 1)
+                +
+                "위 / "
+                +
+                financialList.length
+                +
+                "개사"
+            );
+
+
+        }
+        else{
+
+
+            setText(
+                "#financial-rank",
+                "-"
+            );
+
+
+        }
 
 
 
     }
-
-
     catch(error){
+
 
         console.error(
             "FINANCIAL ERROR",
             error
         );
+
 
     }
 
@@ -290,14 +404,8 @@ async function loadFinancial(){
 
 
 
-
-
-
-
-
-
 /* ===================================
-   Market TOP10
+   시장 TOP10
 =================================== */
 
 
@@ -308,78 +416,22 @@ async function loadRates(){
 
 
         const response =
-        await fetch("/api/rates");
+        await fetch(
+            "/api/rates"
+        );
 
 
         const data =
         await response.json();
 
 
-
-        const table =
-        document.querySelector(
-            "#market-table"
+        renderRateTable(
+            "#market-table",
+            data
         );
 
 
-
-        if(!table) return;
-
-
-
-        table.innerHTML="";
-
-
-
-        data.forEach(item=>{
-
-
-            const row =
-            document.createElement("tr");
-
-
-
-            row.innerHTML = `
-
-
-            <td>
-                ${item.rank}
-            </td>
-
-
-            <td>
-                ${item.bank}
-            </td>
-
-
-            <td>
-                ${item.product}
-            </td>
-
-
-            <td>
-                ${item.rate.toFixed(2)}%
-            </td>
-
-
-            <td>
-                ${formatChange(item.change)}
-            </td>
-
-
-            `;
-
-
-            table.appendChild(row);
-
-
-        });
-
-
-
     }
-
-
     catch(error){
 
 
@@ -396,14 +448,151 @@ async function loadRates(){
 
 
 
+/* ===================================
+   공통 금리 테이블
+=================================== */
 
 
+function renderRateTable(
+    selector,
+    data
+){
 
+
+    const table =
+    document.querySelector(
+        selector
+    );
+
+
+    if(!table)
+        return;
+
+
+    table.innerHTML = "";
+
+
+    if(
+        !data ||
+        data.length === 0
+    ){
+
+
+        table.innerHTML = `
+
+        <tr>
+
+        <td colspan="5">
+        데이터가 없습니다.
+        </td>
+
+        </tr>
+
+        `;
+
+
+        return;
+
+    }
+
+
+    data.forEach(
+        function(item,index){
+
+
+            const row =
+            document.createElement(
+                "tr"
+            );
+
+
+            const rank =
+            item.rank ||
+            index + 1;
+
+
+            let rankClass = "";
+
+
+            if(rank === 1){
+
+                rankClass = "top1";
+
+            }
+            else if(rank === 2){
+
+                rankClass = "top2";
+
+            }
+            else if(rank === 3){
+
+                rankClass = "top3";
+
+            }
+
+
+            let bankName =
+            item.bank || "";
+
+
+            if(
+                bankName.includes(
+                    "우리금융"
+                )
+            ){
+
+                bankName =
+                `<strong>${bankName}</strong>`;
+
+            }
+
+
+            row.innerHTML = `
+
+            <td class="${rankClass}">
+            ${rank}위
+            </td>
+
+            <td>
+            ${bankName}
+            </td>
+
+            <td>
+            ${item.product || ""}
+            </td>
+
+            <td>
+            <strong>
+            ${Number(
+                item.rate || 0
+            ).toFixed(2)}%
+            </strong>
+            </td>
+
+            <td>
+            ${formatChange(
+                item.change
+            )}
+            </td>
+
+            `;
+
+
+            table.appendChild(
+                row
+            );
+
+
+        }
+    );
+
+
+}
 
 
 
 /* ===================================
-   전체 상품조회
+   전체 상품 조회
 =================================== */
 
 
@@ -414,79 +603,27 @@ async function loadProducts(){
 
 
         const response =
-        await fetch("/api/products");
-
-
-        const data =
-        await response.json();
-
-
-
-        const table =
-        document.querySelector(
-            "#product-table"
+        await fetch(
+            "/api/products"
         );
 
 
-
-        if(!table) return;
-
-
-
-        table.innerHTML="";
+        productData =
+        await response.json();
 
 
-
-        data.forEach(item=>{
-
-
-            const row =
-            document.createElement("tr");
-
-
-
-            row.innerHTML = `
-
-
-            <td>
-                ${item.bank}
-            </td>
-
-
-            <td>
-                ${item.product}
-            </td>
-
-
-            <td>
-                ${item.rate.toFixed(2)}%
-            </td>
-
-
-            <td>
-                ${formatChange(item.change)}
-            </td>
-
-
-            `;
-
-
-            table.appendChild(row);
-
-
-        });
-
+        renderProducts();
 
 
     }
-
-
     catch(error){
+
 
         console.error(
             "PRODUCT ERROR",
             error
         );
+
 
     }
 
@@ -495,9 +632,350 @@ async function loadProducts(){
 
 
 
+function renderProducts(){
+
+
+    const table =
+    document.querySelector(
+        "#product-table"
+    );
+
+
+    if(!table)
+        return;
+
+
+    const keyword =
+    (
+        document.querySelector(
+            "#product-search"
+        )?.value
+        ||
+        ""
+    )
+    .toLowerCase();
+
+
+    let filtered =
+    productData.filter(
+        function(item){
+
+
+            const category =
+            item.category || "";
+
+
+            const period =
+            item.period || "";
+
+
+            const bank =
+            String(
+                item.bank || ""
+            )
+            .toLowerCase();
+
+
+            const product =
+            String(
+                item.product || ""
+            )
+            .toLowerCase();
+
+
+            return (
+
+                category === selectedCategory
+
+                &&
+
+                (
+                    selectedCategory !== "정기예금"
+
+                    ||
+
+                    period === selectedPeriod
+                )
+
+                &&
+
+                (
+                    bank.includes(keyword)
+
+                    ||
+
+                    product.includes(keyword)
+                )
+
+            );
+
+
+        }
+    );
+
+
+    filtered.sort(
+        function(a,b){
+
+
+            return (
+                Number(b.rate)
+                -
+                Number(a.rate)
+            );
+
+
+        }
+    );
+
+
+    table.innerHTML = "";
+
+
+    if(filtered.length === 0){
+
+
+        table.innerHTML = `
+
+        <tr>
+
+        <td colspan="5">
+        조회 결과가 없습니다.
+        </td>
+
+        </tr>
+
+        `;
+
+
+        return;
+
+    }
+
+
+    filtered.forEach(
+        function(item,index){
+
+
+            const row =
+            document.createElement(
+                "tr"
+            );
+
+
+            const rank =
+            index + 1;
+
+
+            let rankClass = "";
+
+
+            if(rank === 1){
+
+                rankClass = "top1";
+
+            }
+            else if(rank === 2){
+
+                rankClass = "top2";
+
+            }
+            else if(rank === 3){
+
+                rankClass = "top3";
+
+            }
+
+
+            let bankName =
+            item.bank || "";
+
+
+            if(
+                bankName.includes(
+                    "우리금융"
+                )
+            ){
+
+                bankName =
+                `<strong>${bankName}</strong>`;
+
+            }
+
+
+            row.innerHTML = `
+
+            <td class="${rankClass}">
+            ${rank}위
+            </td>
+
+            <td>
+            ${bankName}
+            </td>
+
+            <td>
+            ${item.product || ""}
+            </td>
+
+            <td>
+            <strong>
+            ${Number(
+                item.rate || 0
+            ).toFixed(2)}%
+            </strong>
+            </td>
+
+            <td>
+            ${formatChange(
+                item.change
+            )}
+            </td>
+
+            `;
+
+
+            table.appendChild(
+                row
+            );
+
+
+        }
+    );
+
+
+}
 
 
 
+/* ===================================
+   상품 탭 / 기간
+=================================== */
+
+
+function initProductFilter(){
+
+
+    const categoryButtons =
+    document.querySelectorAll(
+        ".product-tabs button"
+    );
+
+
+    const periodButtons =
+    document.querySelectorAll(
+        ".period-filter button"
+    );
+
+
+    categoryButtons.forEach(
+        function(button){
+
+
+            button.addEventListener(
+                "click",
+                function(){
+
+
+                    categoryButtons.forEach(
+                        function(item){
+
+                            item.classList.remove(
+                                "active"
+                            );
+
+                        }
+                    );
+
+
+                    button.classList.add(
+                        "active"
+                    );
+
+
+                    selectedCategory =
+                    button.innerText.trim();
+
+
+                    renderProducts();
+
+
+                }
+            );
+
+
+        }
+    );
+
+
+    periodButtons.forEach(
+        function(button){
+
+
+            button.addEventListener(
+                "click",
+                function(){
+
+
+                    periodButtons.forEach(
+                        function(item){
+
+                            item.classList.remove(
+                                "active"
+                            );
+
+                        }
+                    );
+
+
+                    button.classList.add(
+                        "active"
+                    );
+
+
+                    selectedPeriod =
+                    button.innerText.trim();
+
+
+                    renderProducts();
+
+
+                }
+            );
+
+
+        }
+    );
+
+
+}
+
+
+
+/* ===================================
+   상품 검색
+=================================== */
+
+
+function initProductSearch(){
+
+
+    const input =
+    document.querySelector(
+        "#product-search"
+    );
+
+
+    if(!input)
+        return;
+
+
+    input.addEventListener(
+        "input",
+        renderProducts
+    );
+
+
+}
 
 
 
@@ -513,12 +991,13 @@ async function loadAI(){
 
 
         const response =
-        await fetch("/api/ai");
+        await fetch(
+            "/api/ai"
+        );
 
 
         const data =
         await response.json();
-
 
 
         const box =
@@ -527,39 +1006,40 @@ async function loadAI(){
         );
 
 
-
-        if(!box) return;
-
+        if(!box)
+            return;
 
 
         box.innerHTML = `
 
-
         <ul>
 
         ${
-            data.summary.map(
-                item =>
-                `<li>${item}</li>`
-            ).join("")
+            (data.summary || [])
+            .map(
+                function(item){
+
+                    return `<li>${item}</li>`;
+
+                }
+            )
+            .join("")
         }
 
         </ul>
 
-
         `;
 
 
-
     }
-
-
     catch(error){
+
 
         console.error(
             "AI ERROR",
             error
         );
+
 
     }
 
@@ -568,9 +1048,230 @@ async function loadAI(){
 
 
 
+/* ===================================
+   AI 검색 초기화
+=================================== */
+
+
+function initAISearch(){
+
+
+    const input =
+    document.querySelector(
+        "#ai-question"
+    );
+
+
+    const button =
+    document.querySelector(
+        "#ai-search-btn"
+    );
+
+
+    if(button){
+
+
+        button.addEventListener(
+            "click",
+            searchAI
+        );
+
+
+    }
+
+
+    if(input){
+
+
+        input.addEventListener(
+            "keydown",
+            function(event){
+
+
+                if(event.key === "Enter"){
+
+
+                    event.preventDefault();
+
+
+                    clearTimeout(
+                        aiTimer
+                    );
+
+
+                    searchAI();
+
+
+                }
+
+
+            }
+        );
+
+
+    }
+
+
+}
 
 
 
+/* ===================================
+   AI 자동 검색
+=================================== */
+
+
+function initAIAutoSearch(){
+
+
+    const input =
+    document.querySelector(
+        "#ai-question"
+    );
+
+
+    if(!input)
+        return;
+
+
+    input.addEventListener(
+        "input",
+        function(){
+
+
+            clearTimeout(
+                aiTimer
+            );
+
+
+            aiTimer =
+            setTimeout(
+                function(){
+
+
+                    if(
+                        input.value.trim().length >= 2
+                    ){
+
+
+                        searchAI();
+
+
+                    }
+
+
+                },
+                800
+            );
+
+
+        }
+    );
+
+
+}
+
+
+
+/* ===================================
+   AI 검색
+=================================== */
+
+
+async function searchAI(){
+
+
+    const input =
+    document.querySelector(
+        "#ai-question"
+    );
+
+
+    const answer =
+    document.querySelector(
+        "#ai-answer"
+    );
+
+
+    if(!input || !answer)
+        return;
+
+
+    const question =
+    input.value.trim();
+
+
+    if(!question){
+
+
+        answer.innerText =
+        "질문을 입력해주세요.";
+
+
+        return;
+
+    }
+
+
+    answer.innerText =
+    "검색중입니다...";
+
+
+    try{
+
+
+        const response =
+        await fetch(
+            "/api/ai/search",
+            {
+
+                method: "POST",
+
+                headers: {
+
+                    "Content-Type":
+                    "application/json"
+
+                },
+
+                body:
+                JSON.stringify({
+
+                    question: question
+
+                })
+
+            }
+        );
+
+
+        const data =
+        await response.json();
+
+
+        answer.innerText =
+        data.answer ||
+        "검색 결과가 없습니다.";
+
+
+    }
+    catch(error){
+
+
+        console.error(
+            "AI SEARCH ERROR",
+            error
+        );
+
+
+        answer.innerText =
+        "검색 오류가 발생했습니다.";
+
+
+    }
+
+
+}
 
 
 
@@ -584,6 +1285,7 @@ function setText(
     value
 ){
 
+
     const element =
     document.querySelector(
         selector
@@ -592,28 +1294,49 @@ function setText(
 
     if(element){
 
+
         element.innerText =
         value;
 
+
     }
+
 
 }
 
 
 
+function setHTML(
+    selector,
+    value
+){
 
 
+    const element =
+    document.querySelector(
+        selector
+    );
 
 
+    if(element){
 
-// Market Position 대비 표시
+
+        element.innerHTML =
+        value;
+
+
+    }
+
+
+}
+
+
 
 function formatGap(value){
 
 
-    let number =
+    const number =
     Number(value);
-
 
 
     if(number > 0){
@@ -633,7 +1356,6 @@ function formatGap(value){
     }
 
 
-
     if(number < 0){
 
 
@@ -651,7 +1373,6 @@ function formatGap(value){
     }
 
 
-
     return "0.00%p";
 
 
@@ -659,30 +1380,38 @@ function formatGap(value){
 
 
 
-
-
-
-
-
-// 일반 전일대비
-
 function formatChange(value){
 
 
     if(
-        !value ||
+        value === null
+        ||
+        value === undefined
+        ||
         value === "-"
     ){
 
+
         return "-";
+
 
     }
 
 
+    const number =
+    Number(
+        String(value)
+        .replace("+","")
+    );
 
-    let number =
-    parseFloat(value);
 
+    if(isNaN(number)){
+
+
+        return value;
+
+
+    }
 
 
     if(number > 0){
@@ -702,7 +1431,6 @@ function formatChange(value){
     }
 
 
-
     if(number < 0){
 
 
@@ -718,7 +1446,6 @@ function formatChange(value){
 
 
     }
-
 
 
     return "0.00%";

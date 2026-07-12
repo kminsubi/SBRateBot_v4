@@ -20,6 +20,42 @@
 <div class="dashboard">
 
 
+
+<!-- =====================
+슬림 시스템 헤더
+===================== -->
+
+
+<header class="system-header slim-header">
+
+
+    <div class="slim-header-title">
+
+        <h1>
+        저축은행 수신금리 모니터링
+        </h1>
+
+    </div>
+
+
+
+    <div class="slim-header-status">
+
+        <span class="online-dot"></span>
+
+        <strong>
+        ONLINE
+        </strong>
+
+    </div>
+
+
+</header>
+
+
+
+
+
 <!-- =====================
 상단 영역
 ===================== -->
@@ -28,41 +64,78 @@
 <div class="top-grid">
 
 
+
 <div class="panel">
+
 
 <h2>
 정기예금 시장현황 (12개월 기준)
 </h2>
 
 
+
 <div class="kpi-mini">
 
 
-<div>
-<span>상품수</span>
-<strong id="product-count">-</strong>
-</div>
-
 
 <div>
-<span>최고금리</span>
-<strong id="max-rate">-</strong>
+
+<span>
+상품수
+</span>
+
+<strong id="product-count">
+-
+</strong>
+
 </div>
 
-
-<div>
-<span>평균금리</span>
-<strong id="avg-rate">-</strong>
-</div>
 
 
 <div>
-<span>최저금리</span>
-<strong id="min-rate">-</strong>
+
+<span>
+최고금리
+</span>
+
+<strong id="max-rate">
+-
+</strong>
+
 </div>
 
 
+
+<div>
+
+<span>
+평균금리
+</span>
+
+<strong id="avg-rate">
+-
+</strong>
+
 </div>
+
+
+
+<div>
+
+<span>
+최저금리
+</span>
+
+<strong id="min-rate">
+-
+</strong>
+
+</div>
+
+
+
+</div>
+
 
 </div>
 
@@ -71,15 +144,20 @@
 
 
 <div class="panel">
+
 
 <h2>
 AI 시장 요약
 </h2>
 
 
+
 <div id="ai-summary">
+
 불러오는 중...
+
 </div>
+
 
 
 </div>
@@ -90,9 +168,11 @@ AI 시장 요약
 
 <div class="panel">
 
+
 <h2>
 AI 검색
 </h2>
+
 
 
 <input
@@ -101,19 +181,18 @@ placeholder="금리 관련 질문 입력"
 />
 
 
-<button id="ai-search-btn">
-검색
-</button>
 
+<div id="ai-answer">
 
-<div id="ai-answer"></div>
+</div>
+
 
 
 </div>
 
 
-</div>
 
+</div>
 
 
 
@@ -122,7 +201,7 @@ placeholder="금리 관련 질문 입력"
 
 
 <!-- =====================
-하단 영역
+하단 3열 영역
 ===================== -->
 
 
@@ -130,59 +209,234 @@ placeholder="금리 관련 질문 입력"
 
 
 
-<!-- 1열 -->
+
+
+<!-- =====================
+1열
+Market Position
+===================== -->
+
 
 <div class="left-column">
 
 
-<div class="panel">
+
+<div class="panel market-position-panel">
+
+
+
+<div class="market-position-header">
+
+
+
+<div>
+
+
+<span class="market-position-label">
+
+MARKET POSITION
+
+</span>
+
 
 
 <h2>
-우리금융저축은행 Market Position
+
+우리금융저축은행
+
 </h2>
 
 
-<div class="position-summary">
+
+<small>
+
+기준상품 :
+
+<span id="basis-product">
+
+-
+
+</span>
+
+(12개월 기준)
+
+</small>
+
+
+
+</div>
+
+
+
+
+
+<div class="market-position-badge">
+
+
+<span>
+
+현재금리
+
+</span>
+
+
+
+<strong id="woori-rate">
+
+-
+
+</strong>
+
+
+
+</div>
+
+
+
+</div>
+
+
+
+
+
+
+
+<div class="market-rank-grid">
+
+
+
+<div class="market-rank-card primary">
+
+
+<span>
+
+시장순위
+
+</span>
+
+
+
+<strong id="market-rank">
+
+-
+
+</strong>
+
+
+
+</div>
+
+
+
+
+
+<div class="market-rank-card">
+
+
+<span>
+
+4대금융 순위
+
+</span>
+
+
+
+<strong id="financial-rank">
+
+-
+
+</strong>
+
+
+
+</div>
+
+
+
+</div>
+
+
+
+
+
+
+
+
+<div class="market-gap-list">
+
 
 
 <div>
-<span>시장순위</span>
-<strong id="market-rank">-</strong>
+
+
+<span>
+
+최고금리 대비
+
+</span>
+
+
+
+<strong id="highest-gap">
+
+-
+
+</strong>
+
+
+
 </div>
+
+
+
 
 
 <div>
-<span>4대금융 순위</span>
-<strong id="financial-rank">-</strong>
+
+
+<span>
+
+최저금리 대비
+
+</span>
+
+
+
+<strong id="lowest-gap">
+
+-
+
+</strong>
+
+
+
 </div>
+
+
+
 
 
 <div>
-<span>현재금리</span>
-<strong id="woori-rate">-</strong>
-</div>
 
 
-<div>
-<span>평균금리 대비</span>
-<strong id="average-gap">-</strong>
-</div>
+<span>
+
+평균금리 대비
+
+</span>
 
 
-<div>
-<span>최고금리 대비</span>
-<strong id="highest-gap">-</strong>
-</div>
 
+<strong id="average-gap">
 
-<div>
-<span>최저금리 대비</span>
-<strong id="lowest-gap">-</strong>
-</div>
+-
+
+</strong>
+
 
 
 </div>
+
 
 
 </div>
@@ -191,240 +445,316 @@ placeholder="금리 관련 질문 입력"
 
 
 
+</div>
+
+
+
+
+
+
+</div>
+<!-- =====================
+2열 : 시장 TOP10
+===================== -->
 
 
 <div class="panel">
 
 
-<h2>
-금융지주 저축은행 비교
-</h2>
-
-
-<table>
-
-
-<thead>
-
-<tr>
-
-<th>순위</th>
-
-<th>저축은행명</th>
-
-<th>상품명</th>
-
-<th>금리</th>
-
-<th>전일대비</th>
-
-</tr>
-
-
-</thead>
-
-
-<tbody id="financial-table">
-
-</tbody>
-
-
-</table>
-
-
-</div>
-
-
-
-</div>
-
-
-
-
-
-
-
-
-
-<!-- 2열 -->
-
-
-<div class="panel">
-
-
-<h2>
-시장 TOP10
-</h2>
-
-
-<table>
-
-
-<thead>
-
-<tr>
-
-<th>순위</th>
-
-<th>저축은행</th>
-
-<th>상품명</th>
-
-<th>금리</th>
-
-<th>전일대비</th>
-
-</tr>
-
-
-</thead>
-
-
-<tbody id="market-table">
-
-</tbody>
-
-
-</table>
-
-
-</div>
-
-
-
-
-
-
-
-
-
-<!-- 3열 -->
-
-
-<div class="panel">
-
-
-<h2>
-전체상품조회
-</h2>
-
-
-<div class="product-tabs">
-
-
-<button class="active">
-정기예금
-</button>
-
-
-<button>
-적금
-</button>
-
-
-<button>
-ISA
-</button>
-
-
-<button>
-IRP
-</button>
-
-
-</div>
-
-
-
-
-
-<div class="period-filter">
-
-
-<button>
-3개월
-</button>
-
-
-<button>
-6개월
-</button>
-
-
-<button class="active">
-12개월
-</button>
-
-
-<button>
-24개월
-</button>
-
-
-</div>
-
-
-
-
-
-<input
-id="product-search"
-placeholder="저축은행명 또는 상품명 검색"
-/>
-
-
-
-
-
-<table>
-
-
-<thead>
-
-<tr>
-
-<th>저축은행명</th>
-
-<th>상품명</th>
-
-<th>금리</th>
-
-<th>전일대비</th>
-
-</tr>
-
-
-</thead>
-
-
-<tbody id="product-table">
-
-</tbody>
-
-
-</table>
-
-
-</div>
-
-
-
-
-
-</div>
-
-
-
-</div>
-
-
-
-
-
-<script src="/static/js/dashboard.js"></script>
-
-
-</body>
-
-
-</html>
+    <h2>
+    시장 TOP10
+    </h2>
+    
+    
+    
+    <table>
+    
+    
+    <thead>
+    
+    <tr>
+    
+    <th>
+    순위
+    </th>
+    
+    
+    <th>
+    저축은행
+    </th>
+    
+    
+    <th>
+    상품명
+    </th>
+    
+    
+    <th>
+    금리
+    </th>
+    
+    
+    <th>
+    전일대비
+    </th>
+    
+    
+    </tr>
+    
+    
+    </thead>
+    
+    
+    
+    <tbody id="market-table">
+    
+    
+    </tbody>
+    
+    
+    
+    </table>
+    
+    
+    </div>
+    
+    
+    
+    
+    
+    
+    
+    <!-- =====================
+    3열 : 저축은행 금리비교
+    ===================== -->
+    
+    
+    <div class="panel">
+    
+    
+    <h2>
+    저축은행 금리비교
+    </h2>
+    
+    
+    
+    
+    
+    <div class="product-tabs">
+    
+    
+    
+    <button class="active">
+    
+    정기예금
+    
+    </button>
+    
+    
+    
+    <button>
+    
+    적금
+    
+    </button>
+    
+    
+    
+    <button>
+    
+    ISA
+    
+    </button>
+    
+    
+    
+    <button>
+    
+    IRP
+    
+    </button>
+    
+    
+    
+    </div>
+    
+    
+    
+    
+    
+    
+    
+    <div class="period-filter">
+    
+    
+    
+    <button>
+    
+    1개월
+    
+    </button>
+    
+    
+    
+    <button>
+    
+    3개월
+    
+    </button>
+    
+    
+    
+    <button>
+    
+    6개월
+    
+    </button>
+    
+    
+    
+    <button class="active">
+    
+    12개월
+    
+    </button>
+    
+    
+    
+    <button>
+    
+    24개월
+    
+    </button>
+    
+    
+    
+    <button>
+    
+    36개월
+    
+    </button>
+    
+    
+    
+    </div>
+    
+    
+    
+    
+    
+    
+    
+    <input
+    
+    id="product-search"
+    
+    placeholder="저축은행명 또는 상품명 검색"
+    
+    />
+    
+    
+    
+    
+    
+    
+    
+    <table>
+    
+    
+    
+    <thead>
+    
+    
+    
+    <tr>
+    
+    
+    
+    <th>
+    순위
+    </th>
+    
+    
+    
+    <th>
+    저축은행명
+    </th>
+    
+    
+    
+    <th>
+    상품명
+    </th>
+    
+    
+    
+    <th>
+    금리
+    </th>
+    
+    
+    
+    <th>
+    전일대비
+    </th>
+    
+    
+    
+    </tr>
+    
+    
+    
+    </thead>
+    
+    
+    
+    
+    
+    <tbody id="product-table">
+    
+    
+    
+    </tbody>
+    
+    
+    
+    
+    
+    </table>
+    
+    
+    
+    
+    
+    </div>
+    
+    
+    
+    
+    
+    
+    
+    </div>
+    
+    
+    
+    
+    
+    
+    
+    </div>
+    
+    
+    
+    
+    
+    
+    
+    <script src="/static/js/dashboard.js"></script>
+    
+    
+    
+    </body>
+    
+    
+    </html>

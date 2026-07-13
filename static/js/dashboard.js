@@ -365,11 +365,7 @@ async function loadFinancial(){
                 "#financial-rank",
                 (wooriRank + 1)
                 +
-                "위 / "
-                +
-                financialList.length
-                +
-                "개사"
+                "위"
             );
 
 
@@ -1246,12 +1242,56 @@ async function searchAI(){
 
 
         const data =
-        await response.json();
+await response.json();
 
 
-        answer.innerText =
-        data.answer ||
-        "검색 결과가 없습니다.";
+const result =
+data.answer ||
+"검색 결과가 없습니다.";
+
+
+// AI 검색 결과 출력
+answer.innerText =
+result;
+
+
+// 시장 분석 관련 검색이면 AI 요약에도 추가
+if(
+    question.includes("시장")
+    ||
+    question.includes("분석")
+    ||
+    question.includes("동향")
+    ||
+    question.includes("전망")
+    ||
+    question.includes("상황")
+){
+
+    const box =
+    document.querySelector(
+        "#ai-summary"
+    );
+
+
+    if(box){
+
+        box.innerHTML =
+        `
+
+        <ul>
+
+        <li>
+        ${result.replace(/\n/g,"<br>")}
+        </li>
+
+        </ul>
+
+        `;
+
+    }
+
+}
 
 
     }

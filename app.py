@@ -1,18 +1,32 @@
+# ===================================
+# SBRateBot V4 app.py
+# 1/4
+# ===================================
+
+
 from flask import Flask, render_template, jsonify, request
+
+from ai.gemini import ask_gemini
+
 import json
 import os
+import re
+
 
 
 app = Flask(__name__)
 
 
-# ===================================
-# 기본 설정
-# ===================================
+
+# -------------------------------
+# 기본 경로 설정
+# -------------------------------
+
 
 BASE_DIR = os.path.dirname(
     os.path.abspath(__file__)
 )
+
 
 
 DATA_FILE = os.path.join(
@@ -23,9 +37,10 @@ DATA_FILE = os.path.join(
 
 
 
-# ===================================
-# 기준 설정
-# ===================================
+# -------------------------------
+# 기간 설정
+# -------------------------------
+
 
 PERIOD_MAP = {
 
@@ -40,6 +55,8 @@ PERIOD_MAP = {
 
 
 
+# 금융지주 계열 저축은행
+
 FINANCIAL_BANKS = [
 
     "우리금융저축은행",
@@ -51,14 +68,16 @@ FINANCIAL_BANKS = [
 
 
 
-# ===================================
+# -------------------------------
 # 데이터 로드
-# ===================================
+# -------------------------------
+
 
 def load_rates():
 
 
     try:
+
 
         with open(
 
@@ -70,11 +89,13 @@ def load_rates():
 
         ) as f:
 
+
             data = json.load(f)
 
 
 
         if isinstance(data, list):
+
 
             return [
 
@@ -87,7 +108,9 @@ def load_rates():
             ]
 
 
+
         return []
+
 
 
     except Exception:
@@ -98,14 +121,16 @@ def load_rates():
 
 
 
-# ===================================
+# -------------------------------
 # 숫자 변환
-# ===================================
+# -------------------------------
+
 
 def safe_float(value):
 
 
     try:
+
 
         if value in [
 
@@ -117,13 +142,16 @@ def safe_float(value):
 
         ]:
 
+
             return None
+
 
 
         return float(value)
 
 
-    except:
+
+    except Exception:
 
 
         return None
@@ -131,67 +159,61 @@ def safe_float(value):
 
 
 
-# ===================================
+# -------------------------------
 # 문자열 정규화
-# ===================================
+# 은행명 검색 정확도 개선
+# -------------------------------
+
 
 def normalize(text):
 
 
-    return (
+    text = str(text or "")
 
-        str(text or "")
 
-        .replace(
 
-            "(주)",
+    replace_list = [
 
-            ""
+        "(주)",
 
-        )
+        "㈜",
 
-        .replace(
+        "주식회사",
 
-            "㈜",
+        "저축은행",
 
-            ""
+        "은행",
 
-        )
+        " ",
 
-        .replace(
+        "-"
 
-            "저축은행",
+    ]
 
-            ""
 
-        )
 
-        .replace(
+    for item in replace_list:
 
-            "은행",
 
-            ""
+        text = text.replace(
 
-        )
-
-        .replace(
-
-            " ",
+            item,
 
             ""
 
         )
 
-        .lower()
-
-    )
 
 
+    return text.lower()
 
 
-# ===================================
+
+
+# -------------------------------
 # 상품 데이터 생성
-# ===================================
+# -------------------------------
+
 
 def build_products(
 
@@ -203,6 +225,7 @@ def build_products(
     raw_data = load_rates()
 
 
+
     period = PERIOD_MAP.get(
 
         period_name,
@@ -210,6 +233,7 @@ def build_products(
         "12"
 
     )
+
 
 
     rate_field = (
@@ -225,6 +249,7 @@ def build_products(
         "m"
 
     )
+
 
 
     change_field = (
@@ -243,6 +268,7 @@ def build_products(
 
 
 
+
     for item in raw_data:
 
 
@@ -256,6 +282,32 @@ def build_products(
             )
 
         )
+
+
+
+        if rate is None:
+
+
+            rate = 0
+
+
+
+        change = safe_float(
+
+            item.get(
+
+                change_field
+
+            )
+
+        )
+
+
+
+        if change is None:
+
+
+            change = 0
 
 
 
@@ -291,37 +343,16 @@ def build_products(
 
 
 
+
         if not bank or not product:
+
 
             continue
 
 
 
-        if rate is None:
-
-            rate = 0
-
-
-
-        change = safe_float(
-
-            item.get(
-
-                change_field
-
-            )
-
-        )
-
-
-        if change is None:
-
-            change = 0
-
-
 
         products.append({
-
 
             "category":
 
@@ -357,18 +388,22 @@ def build_products(
 
                 item.get(
 
-                    "reg_date"
+                    "reg_date",
+
+                    ""
 
                 )
-
 
         })
 
 
+
     return products
-    # ===================================
-# 중복 제거
-# ===================================
+    
+# -------------------------------
+# 상품 중복 제거
+# -------------------------------
+
 
 def unique_products(products):
 
@@ -384,18 +419,20 @@ def unique_products(products):
 
         key = (
 
-            item.get("bank"),
+            item["bank"],
 
-            item.get("product"),
+            item["product"],
 
-            item.get("period")
+            item["period"]
 
         )
+
 
 
         if key in seen:
 
             continue
+
 
 
         seen.add(key)
@@ -409,9 +446,10 @@ def unique_products(products):
 
 
 
-# ===================================
+# -------------------------------
 # 은행 상품 검색
-# ===================================
+# -------------------------------
+
 
 def find_bank_products(
 
@@ -425,6 +463,7 @@ def find_bank_products(
     keyword = normalize(keyword)
 
 
+
     result = []
 
 
@@ -432,14 +471,16 @@ def find_bank_products(
     for item in products:
 
 
-        bank = normalize(
+        bank_name = normalize(
 
-            item.get("bank")
+            item["bank"]
 
         )
 
 
-        if keyword in bank:
+
+        if keyword in bank_name:
+
 
             result.append(item)
 
@@ -450,9 +491,10 @@ def find_bank_products(
 
 
 
-# ===================================
-# 은행별 최고금리 상품
-# ===================================
+# -------------------------------
+# 은행별 최고 금리
+# -------------------------------
+
 
 def get_bank_best_rates(products):
 
@@ -465,6 +507,7 @@ def get_bank_best_rates(products):
 
 
         bank = item["bank"]
+
 
 
         if (
@@ -495,11 +538,10 @@ def get_bank_best_rates(products):
 
 
 
-# ===================================
+# -------------------------------
 # 시장 순위 계산
-# 금리 없는 은행은 제외하지 않고
-# 하위 순위 처리 가능하도록 구조 유지
-# ===================================
+# -------------------------------
+
 
 def get_market_bank_rank(
 
@@ -517,6 +559,19 @@ def get_market_bank_rank(
     )
 
 
+
+    bank_best = [
+
+        x
+
+        for x in bank_best
+
+        if x["rate"] > 0
+
+    ]
+
+
+
     bank_best.sort(
 
         key=lambda x:
@@ -529,7 +584,7 @@ def get_market_bank_rank(
 
 
 
-    rank = len(bank_best)
+    rank = "-"
 
 
 
@@ -541,7 +596,7 @@ def get_market_bank_rank(
 
 
 
-    for idx, item in enumerate(
+    for idx,item in enumerate(
 
         bank_best,
 
@@ -550,11 +605,7 @@ def get_market_bank_rank(
     ):
 
 
-        if normalize(
-
-            item["bank"]
-
-        ) == target:
+        if normalize(item["bank"]) == target:
 
 
             rank = idx
@@ -564,7 +615,6 @@ def get_market_bank_rank(
 
 
     return {
-
 
         "rank":
 
@@ -580,9 +630,10 @@ def get_market_bank_rank(
 
 
 
-# ===================================
+# -------------------------------
 # 메인 페이지
-# ===================================
+# -------------------------------
+
 
 @app.route("/")
 
@@ -598,9 +649,10 @@ def index():
 
 
 
-# ===================================
-# KPI
-# ===================================
+# -------------------------------
+# KPI API
+# -------------------------------
+
 
 @app.route("/api/kpi")
 
@@ -619,48 +671,66 @@ def api_kpi():
 
 
 
-    rates = [
+    products = [
 
-        x["rate"]
+        x
 
         for x in products
+
+        if x["rate"] > 0
 
     ]
 
 
 
-    if not rates:
+    if not products:
 
 
         return jsonify({
 
+            "product_count":0,
 
-            "product_count":
+            "max_rate":"0.00%",
 
-                0,
+            "average_rate":"0.00%",
 
-
-            "max_rate":
-
-                "0.00%",
-
-
-            "min_rate":
-
-                "0.00%",
-
-
-            "average_rate":
-
-                "0.00%"
-
+            "min_rate":"0.00%"
 
         })
 
 
 
-    return jsonify({
+    max_rate = max(
 
+        x["rate"]
+
+        for x in products
+
+    )
+
+
+
+    min_rate = min(
+
+        x["rate"]
+
+        for x in products
+
+    )
+
+
+
+    avg = sum(
+
+        x["rate"]
+
+        for x in products
+
+    ) / len(products)
+
+
+
+    return jsonify({
 
         "product_count":
 
@@ -669,26 +739,27 @@ def api_kpi():
 
         "max_rate":
 
-            f"{max(rates):.2f}%",
-
-
-        "min_rate":
-
-            f"{min(rates):.2f}%",
+            f"{max_rate:.2f}%",
 
 
         "average_rate":
 
-            f"{sum(rates)/len(rates):.2f}%"
+            f"{avg:.2f}%",
+
+
+        "min_rate":
+
+            f"{min_rate:.2f}%"
 
     })
 
 
 
 
-# ===================================
+# -------------------------------
 # 우리금융 Market Position
-# ===================================
+# -------------------------------
+
 
 @app.route("/api/woori")
 
@@ -707,11 +778,23 @@ def api_woori():
 
 
 
+    products = [
+
+        x
+
+        for x in products
+
+        if x["rate"] > 0
+
+    ]
+
+
+
     woori_products = find_bank_products(
 
         products,
 
-        "우리금융"
+        "우리금융저축은행"
 
     )
 
@@ -720,7 +803,14 @@ def api_woori():
     if not woori_products:
 
 
-        return jsonify({})
+        return jsonify({
+
+            "bank":
+
+                "우리금융저축은행"
+
+        })
+
 
 
     woori = max(
@@ -745,21 +835,13 @@ def api_woori():
 
 
 
-    rates = [
+    avg = sum(
 
         x["rate"]
 
         for x in products
 
-    ]
-
-
-
-    avg = sum(rates) / len(rates)
-
-
-
-    financial_rank = 0
+    ) / len(products)
 
 
 
@@ -770,7 +852,7 @@ def api_woori():
     for bank in FINANCIAL_BANKS:
 
 
-        temp = find_bank_products(
+        items = find_bank_products(
 
             products,
 
@@ -779,14 +861,15 @@ def api_woori():
         )
 
 
-        if temp:
+
+        if items:
 
 
             financial_products.append(
 
                 max(
 
-                    temp,
+                    items,
 
                     key=lambda x:
 
@@ -810,6 +893,10 @@ def api_woori():
 
 
 
+    financial_rank = "-"
+
+
+
     for idx,item in enumerate(
 
         financial_products,
@@ -819,15 +906,7 @@ def api_woori():
     ):
 
 
-        if normalize(
-
-            item["bank"]
-
-        ) == normalize(
-
-            woori["bank"]
-
-        ):
+        if normalize(item["bank"]) == normalize(woori["bank"]):
 
 
             financial_rank = idx
@@ -836,13 +915,12 @@ def api_woori():
 
     return jsonify({
 
-
         "bank":
 
             woori["bank"],
 
 
-        "basis_product":
+        "product":
 
             woori["product"],
 
@@ -857,7 +935,7 @@ def api_woori():
             rank["rank"],
 
 
-        "bank_count":
+        "market_total":
 
             rank["total"],
 
@@ -875,34 +953,13 @@ def api_woori():
 
                 2
 
-            ),
-
-
-        "highest_gap":
-
-            round(
-
-                woori["rate"] - max(rates),
-
-                2
-
-            ),
-
-
-        "lowest_gap":
-
-            round(
-
-                woori["rate"] - min(rates),
-
-                2
-
             )
 
     })
-    # ===================================
+    # -------------------------------
 # 시장 TOP10
-# ===================================
+# -------------------------------
+
 
 @app.route("/api/rates")
 
@@ -927,6 +984,18 @@ def api_rates():
     )
 
 
+    bank_best = [
+
+        x
+
+        for x in bank_best
+
+        if x["rate"] > 0
+
+    ]
+
+
+
     bank_best.sort(
 
         key=lambda x:
@@ -938,11 +1007,12 @@ def api_rates():
     )
 
 
+
     result = []
 
 
 
-    for idx, item in enumerate(
+    for idx,item in enumerate(
 
         bank_best[:10],
 
@@ -952,7 +1022,6 @@ def api_rates():
 
 
         result.append({
-
 
             "rank":
 
@@ -978,8 +1047,8 @@ def api_rates():
 
                 item["change"]
 
-
         })
+
 
 
     return jsonify(result)
@@ -987,10 +1056,10 @@ def api_rates():
 
 
 
-
-# ===================================
+# -------------------------------
 # 금융지주 저축은행 비교
-# ===================================
+# -------------------------------
+
 
 @app.route("/api/financial")
 
@@ -1008,6 +1077,7 @@ def api_financial():
     )
 
 
+
     result = []
 
 
@@ -1015,7 +1085,7 @@ def api_financial():
     for bank in FINANCIAL_BANKS:
 
 
-        bank_products = find_bank_products(
+        items = find_bank_products(
 
             products,
 
@@ -1024,22 +1094,22 @@ def api_financial():
         )
 
 
-        if bank_products:
+
+        if items:
 
 
-            result.append(
+            best = max(
 
-                max(
+                items,
 
-                    bank_products,
+                key=lambda x:
 
-                    key=lambda x:
-
-                    x["rate"]
-
-                )
+                x["rate"]
 
             )
+
+
+            result.append(best)
 
 
 
@@ -1052,6 +1122,7 @@ def api_financial():
         reverse=True
 
     )
+
 
 
     response = []
@@ -1068,7 +1139,6 @@ def api_financial():
 
 
         response.append({
-
 
             "rank":
 
@@ -1094,8 +1164,8 @@ def api_financial():
 
                 item["change"]
 
-
         })
+
 
 
     return jsonify(response)
@@ -1103,10 +1173,10 @@ def api_financial():
 
 
 
-
-# ===================================
+# -------------------------------
 # 전체상품 조회
-# ===================================
+# -------------------------------
+
 
 @app.route("/api/products")
 
@@ -1139,9 +1209,12 @@ def api_products():
     )
 
 
+
     products.sort(
 
-        key=lambda x:(
+        key=lambda x:
+
+        (
 
             x["period"],
 
@@ -1152,305 +1225,796 @@ def api_products():
     )
 
 
+
     return jsonify(products)
 
-
-
-
-
-# ===================================
+# -------------------------------
 # AI 시장 요약
-# ===================================
+# -------------------------------
 
 @app.route("/api/ai")
-
 def api_ai():
 
+    try:
 
-    products = unique_products(
+        with open(
+            DATA_FILE,
+            "r",
+            encoding="utf-8"
+        ) as f:
 
-        build_products(
-
-            "12개월"
-
-        )
-
-    )
-
-
-    if not products:
+            products = json.load(f)
 
 
-        return jsonify({
 
-            "summary":
+        if isinstance(products, dict):
 
-                [
+            products = products.get(
+                "REC",
+                []
+            )
 
-                    "금리 데이터가 없습니다."
+
+
+        if not products:
+
+            return jsonify({
+
+                "summary":[
+
+                    "시장 데이터를 불러올 수 없습니다."
 
                 ]
 
-        })
+            })
 
 
 
-    products.sort(
-
-        key=lambda x:
-
-        x["rate"],
-
-        reverse=True
-
-    )
-
-
-
-    highest = products[0]
-
-    lowest = products[-1]
-
-
-
-    average = sum(
-
-        x["rate"]
-
-        for x in products
-
-    ) / len(products)
-
-
-
-    return jsonify({
-
-
-        "summary":
-
-        [
-
-            f"12개월 최고금리는 {highest['bank']} {highest['product']} {highest['rate']:.2f}%입니다.",
-
-            f"12개월 최저금리는 {lowest['bank']} {lowest['product']} {lowest['rate']:.2f}%입니다.",
-
-            f"12개월 평균금리는 {average:.2f}%입니다."
-
-        ]
-
-    })
-
-
-
-
-
-# ===================================
-# AI 검색
-# ===================================
-
-@app.route(
-
-    "/api/ai/search",
-
-    methods=["POST"]
-
-)
-
-def api_ai_search():
-
-
-    body = request.get_json(
-
-        silent=True
-
-    ) or {}
-
-
-
-    question = str(
-
-        body.get(
-
-            "question",
-
-            ""
-
-        )
-
-        or ""
-
-    ).strip()
-
-
-
-    products = unique_products(
-
-        build_products(
-
-            "12개월"
-
-        )
-
-    )
-
-
-
-    if not products:
-
-
-        return jsonify({
-
-            "answer":
-
-                "검색 가능한 금리 데이터가 없습니다."
-
-        })
-
-
-
-    products.sort(
-
-        key=lambda x:
-
-        x["rate"],
-
-        reverse=True
-
-    )
-
-
-
-    q = normalize(question)
-
-
-
-    answer = "검색 결과가 없습니다."
-
-
-
-    if "최고" in question or "높은" in q:
-
-
-        item = products[0]
-
-
-        answer = (
-
-            f"현재 12개월 최고금리는\n\n"
-
-            f"{item['bank']} {item['product']}\n"
-
-            f"{item['rate']:.2f}% 입니다."
-
-        )
-
-
-
-    elif "최저" in question or "낮은" in q:
-
-
-        item = products[-1]
-
-
-        answer = (
-
-            f"현재 12개월 최저금리는\n\n"
-
-            f"{item['bank']} {item['product']}\n"
-
-            f"{item['rate']:.2f}% 입니다."
-
-        )
-
-
-
-    elif "평균" in question:
-
-
-        avg = sum(
-
-            x["rate"]
-
-            for x in products
-
-        ) / len(products)
-
-
-
-        answer = (
-
-            f"현재 12개월 평균금리는\n\n"
-
-            f"{avg:.2f}% 입니다."
-
-        )
-
-
-
-    else:
-
-
-        matches = []
+        rate_products = []
 
 
 
         for item in products:
 
 
-            if (
-
-                q in normalize(item["bank"])
-
-                or
-
-                q in normalize(item["product"])
-
-            ):
+            try:
 
 
-                matches.append(item)
+                rate = float(
 
+                    str(
 
+                        item.get("top_12m")
 
-        if matches:
+                        or item.get("rate")
 
+                        or 0
 
-            lines = []
-
-
-            for item in matches[:5]:
-
-
-                lines.append(
-
-                    f"{item['bank']} "
-
-                    f"{item['product']} "
-
-                    f"{item['rate']:.2f}%"
+                    )
+                    .replace(
+                        ",",
+                        ""
+                    )
 
                 )
 
 
-            answer = "\n".join(lines)
+                if rate > 0:
+
+                    item["rate"] = rate
+
+                    rate_products.append(item)
 
 
 
-    return jsonify({
+            except:
 
-        "answer":
-
-            answer
-
-    })
+                continue
 
 
 
 
+        if not rate_products:
 
-# ===================================
+
+            return jsonify({
+
+                "summary":[
+
+                    "금리 데이터가 없습니다."
+
+                ]
+
+            })
+
+
+
+
+        rate_products.sort(
+
+            key=lambda x:x["rate"],
+
+            reverse=True
+
+        )
+
+
+
+
+        total = len(rate_products)
+
+
+
+        avg_rate = sum(
+
+            x["rate"]
+
+            for x in rate_products
+
+        ) / total
+
+
+
+
+        highest = rate_products[0]
+
+        lowest = rate_products[-1]
+
+
+
+        spread = (
+
+            highest["rate"]
+
+            -
+
+            lowest["rate"]
+
+        )
+
+
+
+
+        summary = []
+
+
+
+        summary.append(
+
+            "📊 12개월 정기예금 시장 분석"
+
+        )
+
+
+
+        summary.append(
+
+            f"분석상품 : {total}개"
+
+        )
+
+
+
+        summary.append(
+
+            f"평균금리 : {avg_rate:.2f}%"
+
+        )
+
+
+
+        summary.append(
+
+            f"최고금리 : "
+
+            f"{highest.get('bank','')} "
+
+            f"{highest['rate']:.2f}%"
+
+        )
+
+
+
+        summary.append(
+
+            f"최저금리 : "
+
+            f"{lowest.get('bank','')} "
+
+            f"{lowest['rate']:.2f}%"
+
+        )
+
+
+
+        summary.append(
+
+            f"금리 스프레드 : {spread:.2f}%p"
+
+        )
+
+
+
+
+        if spread >= 0.5:
+
+
+            summary.append(
+
+                "은행별 금리 경쟁 차이가 큰 시장으로 "
+
+                "최고금리 상품 중심의 경쟁이 진행되고 있습니다."
+
+            )
+
+
+        else:
+
+
+            summary.append(
+
+                "은행별 금리 차이가 크지 않은 "
+
+                "안정적인 금리 경쟁 시장입니다."
+
+            )
+
+
+
+
+        if avg_rate >= 3:
+
+
+            summary.append(
+
+                "평균금리는 3% 이상으로 "
+
+                "예금 유치를 위한 금리 경쟁력이 중요한 상황입니다."
+
+            )
+
+
+        else:
+
+
+            summary.append(
+
+                "평균금리는 낮은 수준으로 "
+
+                "고객 선택 시 금리 차별화가 중요합니다."
+
+            )
+
+
+
+
+        return jsonify({
+
+            "summary":summary
+
+        })
+
+
+
+
+    except Exception as e:
+
+
+        print(
+
+            "AI 시장 분석 오류:",
+
+            e
+
+        )
+
+
+        return jsonify({
+
+            "summary":[
+
+                "AI 시장 분석 오류가 발생했습니다."
+
+            ]
+
+        })
+
+
+# -------------------------------
+# AI 검색
+# -------------------------------
+
+@app.route(
+    "/api/ai/search",
+    methods=["POST"]
+)
+def ai_search():
+
+    try:
+
+        data = request.json
+
+        question = str(
+            data.get(
+                "question",
+                ""
+            )
+        ).strip()
+
+
+        if not question:
+
+            return jsonify({
+
+                "answer":
+                    "질문을 입력해주세요."
+
+            })
+
+
+        q = normalize(question)
+
+
+        products = unique_products(
+
+            build_products(
+
+                "12개월"
+
+            )
+
+        )
+
+
+        products = [
+
+            x
+
+            for x in products
+
+            if x["rate"] > 0
+
+        ]
+
+
+        answer = ""
+
+
+
+        # -------------------------------
+        # 최저 금리
+        # -------------------------------
+
+        if any(
+
+            x in question
+
+            for x in [
+
+                "최저",
+
+                "낮은",
+
+                "가장 낮은"
+
+            ]
+
+        ):
+
+
+            lowest = min(
+
+                products,
+
+                key=lambda x:
+
+                x["rate"]
+
+            )
+
+
+            answer = (
+
+                "📉 최저금리 상품\n\n"
+
+                f"은행 : {lowest['bank']}\n"
+
+                f"상품 : {lowest['product']}\n"
+
+                f"금리 : {lowest['rate']:.2f}%"
+
+            )
+
+
+
+        # -------------------------------
+        # 최고 금리
+        # -------------------------------
+
+        elif any(
+
+            x in question
+
+            for x in [
+
+                "최고",
+
+                "가장 높은"
+
+            ]
+
+        ):
+
+
+            highest = max(
+
+                products,
+
+                key=lambda x:
+
+                x["rate"]
+
+            )
+
+
+            answer = (
+
+                "📈 최고금리 상품\n\n"
+
+                f"은행 : {highest['bank']}\n"
+
+                f"상품 : {highest['product']}\n"
+
+                f"금리 : {highest['rate']:.2f}%"
+
+            )
+
+
+
+        # -------------------------------
+        # 시장 분석
+        # -------------------------------
+
+        elif any(
+
+            x in question
+
+            for x in [
+
+                "시장",
+
+                "분석",
+
+                "동향",
+
+                "전망",
+
+                "상황"
+
+            ]
+
+        ):
+
+
+            avg = sum(
+
+                x["rate"]
+
+                for x in products
+
+            ) / len(products)
+
+
+            highest = max(
+
+                products,
+
+                key=lambda x:
+
+                x["rate"]
+
+            )
+
+
+            lowest = min(
+
+                products,
+
+                key=lambda x:
+
+                x["rate"]
+
+            )
+
+
+            spread = (
+
+                highest["rate"]
+
+                -
+
+                lowest["rate"]
+
+            )
+
+
+            answer = (
+
+                "📊 정기예금 시장 분석\n\n"
+
+                f"분석상품 : {len(products)}개\n"
+
+                f"평균금리 : {avg:.2f}%\n"
+
+                f"최고금리 : {highest['bank']} "
+
+                f"{highest['rate']:.2f}%\n"
+
+                f"최저금리 : {lowest['bank']} "
+
+                f"{lowest['rate']:.2f}%\n"
+
+                f"금리 스프레드 : {spread:.2f}%p"
+
+            )
+
+
+
+        # -------------------------------
+        # 은행 경쟁력 분석
+        # -------------------------------
+
+        elif any(
+
+            x in question
+
+            for x in [
+
+                "경쟁력",
+
+                "비교",
+
+                "어때"
+
+            ]
+
+        ):
+
+
+            target = None
+
+
+            banks = FINANCIAL_BANKS + [
+
+                "SBI저축은행",
+
+                "OK저축은행",
+
+                "웰컴저축은행",
+
+                "페퍼저축은행"
+
+            ]
+
+
+
+            for bank in banks:
+
+
+                if normalize(bank) in q:
+
+
+                    target = bank
+
+                    break
+
+
+
+            if target:
+
+
+                items = find_bank_products(
+
+                    products,
+
+                    target
+
+                )
+
+
+                if items:
+
+
+                    best = max(
+
+                        items,
+
+                        key=lambda x:
+
+                        x["rate"]
+
+                    )
+
+
+                    rank = get_market_bank_rank(
+
+                        products,
+
+                        best["bank"]
+
+                    )
+
+
+                    answer = (
+
+                        f"📌 {best['bank']} 경쟁력 분석\n\n"
+
+                        f"대표상품 : {best['product']}\n"
+
+                        f"금리 : {best['rate']:.2f}%\n"
+
+                        f"시장순위 : "
+
+                        f"{rank['rank']}위 / "
+
+                        f"{rank['total']}개사"
+
+                    )
+
+
+
+        # -------------------------------
+        # 일반 검색
+        # -------------------------------
+
+        if not answer:
+
+
+            result = []
+
+
+            for item in products:
+
+
+                if (
+
+                    q in normalize(item["bank"])
+
+                    or
+
+                    q in normalize(item["product"])
+
+                ):
+
+
+                    result.append(item)
+
+
+
+            if result:
+
+
+                answer = (
+
+                    "📌 검색 결과\n\n"
+
+                )
+
+
+                for item in result[:10]:
+
+
+                    answer += (
+
+                        f"{item['bank']} "
+
+                        f"{item['product']} "
+
+                        f"{item['rate']:.2f}%\n"
+
+                    )
+
+
+
+        if not answer:
+
+
+            answer = (
+
+                "검색 결과가 없습니다."
+
+            )
+
+
+
+        # -------------------------------
+        # Gemini AI 의견 추가
+        # -------------------------------
+
+        try:
+
+
+            market_data = json.dumps(
+
+                products[:30],
+
+                ensure_ascii=False
+
+            )
+
+
+            ai_comment = ask_gemini(
+
+                question,
+
+                market_data
+
+            )
+
+
+            answer += (
+
+
+                "\n\n"
+
+                "🤖 AI 전문가 의견\n\n"
+
+                +
+
+                ai_comment
+
+
+            )
+
+
+        except Exception as e:
+
+
+            print(
+
+                "GEMINI ERROR:",
+
+                e
+
+            )
+
+
+
+        return jsonify({
+
+            "answer":
+
+                answer
+
+        })
+
+
+
+    except Exception as e:
+
+
+        print(
+
+            "AI SEARCH ERROR:",
+
+            e
+
+        )
+
+
+        return jsonify({
+
+            "answer":
+
+                "AI 검색 오류가 발생했습니다."
+
+        })
+
+
+# -------------------------------
 # 실행
-# ===================================
+# -------------------------------
+
 
 if __name__ == "__main__":
 

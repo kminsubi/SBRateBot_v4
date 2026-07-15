@@ -27,7 +27,8 @@ ENV_PATH = os.path.join(
 
 # 환경변수 로드
 load_dotenv(
-    ENV_PATH
+    ENV_PATH,
+    override=True
 )
 
 

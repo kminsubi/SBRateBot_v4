@@ -159,14 +159,13 @@ async function loadWoori(){
 
         setText(
             "#basis-product",
-            data.basis_product || "-"
+            data.product || "-"
         );
-
 
 
         setText(
             "#basis-product-card",
-            data.basis_product || "-"
+            data.product || "-"
         );
 
 

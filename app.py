@@ -2756,7 +2756,8 @@ def ai_search():
                         )
 
                 # -------------------------------
-        # 우리금융보다 높은/낮은 상품 검색
+        # 우리금융보다 높은/낮은 은행 검색
+        # 은행별 최고금리 기준
         # -------------------------------
 
         elif (
@@ -2810,6 +2811,34 @@ def ai_search():
 
 
 
+                # 은행별 최고금리 기준 변환
+
+                bank_products = get_bank_best_rates(
+
+                    products
+
+                )
+
+
+
+                # 우리금융 제외
+
+                bank_products = [
+
+                    x
+
+                    for x in bank_products
+
+                    if normalize(x["bank"])
+
+                    !=
+
+                    normalize(woori_best["bank"])
+
+                ]
+
+
+
                 if "높은" in question:
 
 
@@ -2817,25 +2846,9 @@ def ai_search():
 
                         x
 
-                        for x in products
+                        for x in bank_products
 
-                        if (
-
-                            x["rate"]
-
-                            >
-
-                            woori_rate
-
-                        )
-
-                        and
-
-                        normalize(x["bank"])
-
-                        !=
-
-                        normalize(woori_best["bank"])
+                        if x["rate"] > woori_rate
 
                     ]
 
@@ -2853,7 +2866,7 @@ def ai_search():
 
                     title = (
 
-                        "📈 우리금융보다 높은 금리 상품"
+                        "📈 우리금융보다 높은 은행"
 
                     )
 
@@ -2866,25 +2879,9 @@ def ai_search():
 
                         x
 
-                        for x in products
+                        for x in bank_products
 
-                        if (
-
-                            x["rate"]
-
-                            <
-
-                            woori_rate
-
-                        )
-
-                        and
-
-                        normalize(x["bank"])
-
-                        !=
-
-                        normalize(woori_best["bank"])
+                        if x["rate"] < woori_rate
 
                     ]
 
@@ -2893,16 +2890,14 @@ def ai_search():
 
                         key=lambda x:
 
-                            x["rate"],
-
-                        reverse=True
+                            x["rate"]
 
                     )
 
 
                     title = (
 
-                        "📉 우리금융보다 낮은 금리 상품"
+                        "📉 우리금융보다 낮은 은행"
 
                     )
 
@@ -2945,19 +2940,31 @@ def ai_search():
                         )
 
 
+
                         if gap > 0:
+
 
                             gap_text = (
 
-                                f"<span class='rate-up'>+{gap:.2f}%p</span>"
+                                "<span class='rate-up'>"
+
+                                f"+{gap:.2f}%p"
+
+                                "</span>"
 
                             )
 
+
                         else:
+
 
                             gap_text = (
 
-                                f"<span class='rate-down'>▲{abs(gap):.2f}%p</span>"
+                                "<span class='rate-down'>"
+
+                                f"▲{abs(gap):.2f}%p"
+
+                                "</span>"
 
                             )
 
@@ -2969,8 +2976,6 @@ def ai_search():
 
                             f"{item['bank']} "
 
-                            f"{item['product']} "
-
                             f"{item['rate']:.2f}% "
 
                             f"({gap_text})\n"
@@ -2978,12 +2983,13 @@ def ai_search():
                         )
 
 
+
                 else:
 
 
                     answer += (
 
-                        "해당 조건의 상품이 없습니다."
+                        "해당 조건의 은행이 없습니다."
 
                     )
 

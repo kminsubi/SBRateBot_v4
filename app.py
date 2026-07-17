@@ -162,6 +162,7 @@ def safe_float(value):
 # -------------------------------
 # 문자열 정규화
 # 은행명 검색 정확도 개선
+# 저축은행 명칭 제거
 # -------------------------------
 
 
@@ -169,7 +170,6 @@ def normalize(text):
 
 
     text = str(text or "")
-
 
 
     replace_list = [
@@ -184,12 +184,13 @@ def normalize(text):
 
         "은행",
 
-        " ",
+        " ", 
 
-        "-"
+        "-",
+
+        "_"
 
     ]
-
 
 
     for item in replace_list:
@@ -202,7 +203,6 @@ def normalize(text):
             ""
 
         )
-
 
 
     return text.lower()
@@ -295,13 +295,29 @@ def build_products(
 
         change = safe_float(
 
-            item.get(
+    item.get(
 
-                change_field
+        change_field
 
-            )
+    )
 
-        )
+    or
+
+    item.get(
+
+        "change"
+
+    )
+
+    or
+
+    item.get(
+
+        "change_rate"
+
+    )
+
+)
 
 
 
@@ -779,29 +795,84 @@ def compare_two_banks(products, bank1, bank2):
 
 def find_target_bank(question):
 
-    banks = FINANCIAL_BANKS + [
-
-        "SBI저축은행",
-
-        "OK저축은행",
-
-        "웰컴저축은행",
-
-        "페퍼저축은행",
-
-        "예가람저축은행"
-
-    ]
-
 
     q = normalize(question)
 
 
-    for bank in banks:
+    bank_alias = {
 
-        if normalize(bank) in q:
 
-            return bank
+        "우리금융":
+
+            "우리금융저축은행",
+
+
+        "신한":
+
+            "신한저축은행",
+
+
+        "하나":
+
+            "하나저축은행",
+
+
+        "kb":
+
+            "KB저축은행",
+
+
+        "sbi":
+
+            "SBI저축은행",
+
+
+        "ok":
+
+            "OK저축은행",
+
+
+        "웰컴":
+
+            "웰컴저축은행",
+
+
+        "페퍼":
+
+            "페퍼저축은행",
+
+
+        "모아":
+
+            "모아저축은행",
+
+
+        "한국투자":
+
+            "한국투자저축은행"
+
+    }
+
+
+
+    # 긴 명칭 우선 검색
+
+    for key in sorted(
+
+        bank_alias.keys(),
+
+        key=len,
+
+        reverse=True
+
+    ):
+
+
+        if normalize(key) in q:
+
+
+            return bank_alias[key]
+
 
 
     return None
@@ -2320,220 +2391,64 @@ def ai_search():
 
 
                 # -------------------------------
-        # 우리금융 경쟁력 분석
-        # -------------------------------
-
-        elif (
-
-            "우리금융 경쟁력" in question
-
-            and
-
-            "보다" not in question
-
-        ):
-
-
-            woori_items = find_bank_products(
-
-                products,
-
-                "우리금융저축은행"
-
-            )
-
-
-            if woori_items:
-
-
-                woori_best = max(
-
-                    woori_items,
-
-                    key=lambda x:x["rate"]
-
-                )
-
-
-                higher = [
-
-                    x
-
-                    for x in products
-
-                    if x["rate"] > woori_best["rate"]
-
-                    and normalize(x["bank"])
-
-                    != normalize(woori_best["bank"])
-
-                ]
-
-
-                lower = [
-
-                    x
-
-                    for x in products
-
-                    if x["rate"] < woori_best["rate"]
-
-                    and normalize(x["bank"])
-
-                    != normalize(woori_best["bank"])
-
-                ]
-
-
-                higher.sort(
-
-                    key=lambda x:x["rate"],
-
-                    reverse=True
-
-                )
-
-
-                lower.sort(
-
-                    key=lambda x:x["rate"],
-
-                    reverse=True
-
-                )
-
-
-                answer = (
-
-                    "🏦 우리금융저축은행 경쟁력 분석\n\n"
-
-                    f"대표금리 : {woori_best['rate']:.2f}%\n\n"
-
-                    f"우리금융보다 높은 상품 : {len(higher)}개\n"
-
-                    f"우리금융보다 낮은 상품 : {len(lower)}개\n"
-
-                )
-
-
-                if higher:
-
-
-                    answer += "\n📈 상위 경쟁상품 TOP5\n\n"
-
-
-                    for item in higher[:5]:
-
-
-                        gap = round(
-
-                            item["rate"]
-
-                            -
-
-                            woori_best["rate"],
-
-                            2
-
-                        )
-
-
-                        answer += (
-
-                            f"{item['bank']} "
-
-                            f"{item['rate']:.2f}% "
-
-                            f"(+{gap:.2f}%p)\n"
-
-                        )
-
-
-                if lower:
-
-
-                    answer += "\n📉 하위 경쟁상품 TOP5\n\n"
-
-
-                    for item in lower[:5]:
-
-
-                        gap = round(
-
-                            woori_best["rate"]
-
-                            -
-
-                            item["rate"],
-
-                            2
-
-                        )
-
-
-                        answer += (
-
-                            f"{item['bank']} "
-
-                            f"{item['rate']:.2f}% "
-
-                            f"(-{gap:.2f}%p)\n"
-
-                        )
-
-        # -------------------------------
         # 우리금융 자연어 경쟁력 분석
         # 예)
         # 우리금융 경쟁력 어때
-        # 우리보다 낮은 곳
-        # 우리보다 좋은 곳
+        # 우리금융저축은행 경쟁력
+        # 우리금융저축은행 어때
         # -------------------------------
 
         elif (
 
-    "우리금융"
+            (
+                "우리금융"
+                in question
 
-    in question
+                or
 
-    and any(
+                "우리금융저축은행"
+                in question
+            )
 
-        x in question
+            and any(
 
-        for x in [
+                x in question
 
-            "경쟁력",
+                for x in [
 
-            "어때",
+                    "경쟁력",
 
-            "위치",
+                    "어때",
 
-            "비교"
+                    "위치",
 
-        ]
+                    "비교"
 
-    )
+                ]
 
-    and not any(
+            )
 
-        x in question
+            and not any(
 
-        for x in [
+                x in question
 
-            "보다",
+                for x in [
 
-            "높은",
+                    "보다",
 
-            "낮은",
+                    "높은",
 
-            "이상",
+                    "낮은",
 
-            "이하"
+                    "이상",
 
-        ]
+                    "이하"
 
-    )
+                ]
 
-):
+            )
+
+        ):
 
 
             woori_items = find_bank_products(
@@ -2643,6 +2558,7 @@ def ai_search():
                     reverse=True
 
                 )
+
 
 
                 lower.sort(
@@ -2756,242 +2672,195 @@ def ai_search():
                         )
 
                 # -------------------------------
-        # 우리금융보다 높은/낮은 은행 검색
-        # 은행별 최고금리 기준
+        # 특정 은행보다 높은/낮은 은행 검색
+        # 예)
+        # 우리금융저축은행보다 높은 곳
+        # 우리금융저축은행보다 낮은 곳
         # -------------------------------
 
         elif (
-
-            "우리금융보다"
-
-            in question
-
+            "보다" in question
             and (
-
-                "높은"
-
-                in question
-
+                "높은" in question
                 or
-
-                "낮은"
-
-                in question
-
+                "낮은" in question
             )
-
         ):
 
 
-            woori_items = find_bank_products(
-
-                products,
-
-                "우리금융저축은행"
-
+            target_bank = find_target_bank(
+                question
             )
 
 
+            if target_bank:
 
-            if woori_items:
 
-
-                woori_best = max(
-
-                    woori_items,
-
-                    key=lambda x:
-
-                        x["rate"]
-
+                target_items = find_bank_products(
+                    products,
+                    target_bank
                 )
 
 
-                woori_rate = woori_best["rate"]
+                if target_items:
+
+
+                    target_best = max(
+                        target_items,
+                        key=lambda x:x["rate"]
+                    )
+
+
+                    target_rate = target_best["rate"]
 
 
 
-                # 은행별 최고금리 기준 변환
-
-                bank_products = get_bank_best_rates(
-
-                    products
-
-                )
+                    bank_products = get_bank_best_rates(
+                        products
+                    )
 
 
 
-                # 우리금융 제외
-
-                bank_products = [
-
-                    x
-
-                    for x in bank_products
-
-                    if normalize(x["bank"])
-
-                    !=
-
-                    normalize(woori_best["bank"])
-
-                ]
-
-
-
-                if "높은" in question:
-
-
-                    result = [
+                    bank_products = [
 
                         x
 
                         for x in bank_products
 
-                        if x["rate"] > woori_rate
+                        if normalize(x["bank"])
+                        !=
+                        normalize(target_bank)
 
                     ]
 
 
-                    result.sort(
 
-                        key=lambda x:
-
-                            x["rate"],
-
-                        reverse=True
-
-                    )
+                    if "높은" in question:
 
 
-                    title = (
+                        result = [
 
-                        "📈 우리금융보다 높은 은행"
+                            x
 
-                    )
+                            for x in bank_products
 
+                            if x["rate"] > target_rate
 
-
-                else:
-
-
-                    result = [
-
-                        x
-
-                        for x in bank_products
-
-                        if x["rate"] < woori_rate
-
-                    ]
+                        ]
 
 
-                    result.sort(
-
-                        key=lambda x:
-
-                            x["rate"]
-
-                    )
+                        result.sort(
+                            key=lambda x:x["rate"],
+                            reverse=True
+                        )
 
 
-                    title = (
-
-                        "📉 우리금융보다 낮은 은행"
-
-                    )
+                        title = (
+                            f"📈 {target_bank}보다 높은 금리 은행"
+                        )
 
 
-
-                answer = (
-
-                    f"{title}\n\n"
-
-                    f"우리금융 기준금리 : "
-
-                    f"{woori_rate:.2f}%\n\n"
-
-                )
+                    else:
 
 
+                        result = [
 
-                if result:
+                            x
 
+                            for x in bank_products
 
-                    for idx,item in enumerate(
+                            if x["rate"] < target_rate
 
-                        result[:10],
-
-                        start=1
-
-                    ):
+                        ]
 
 
-                        gap = round(
+                        result.sort(
+                            key=lambda x:x["rate"],
+                            reverse=True
+                        )
 
-                            item["rate"]
 
-                            -
-
-                            woori_rate,
-
-                            2
-
+                        title = (
+                            f"📉 {target_bank}보다 낮은 금리 은행"
                         )
 
 
 
-                        if gap > 0:
+                    answer = (
+
+                        f"{title}<br><br>"
+
+                        f"{target_bank} 기준금리 : "
+                        f"{target_rate:.2f}%<br><br>"
+
+                    )
 
 
-                            gap_text = (
 
-                                "<span class='rate-up'>"
+                    if result:
 
-                                f"+{gap:.2f}%p"
 
-                                "</span>"
+                        for idx,item in enumerate(
+                            result[:10],
+                            start=1
+                        ):
+
+
+                            gap = round(
+                                item["rate"] - target_rate,
+                                2
+                            )
+
+
+
+                            if gap > 0:
+
+                                gap_text = (
+                                    f'<span class="rate-change increase">'
+                                    f'+{gap:.2f}%p'
+                                    f'</span>'
+                                )
+
+
+                            else:
+
+                                gap_text = (
+                                    f'<span class="rate-change decrease">'
+                                    f'▲{abs(gap):.2f}%p'
+                                    f'</span>'
+                                )
+
+
+
+                            answer += (
+
+                                f"{idx}. "
+                                f"{item['bank']} "
+                                f"{item['rate']:.2f}% "
+                                f"({gap_text})<br>"
 
                             )
 
 
-                        else:
-
-
-                            gap_text = (
-
-                                "<span class='rate-down'>"
-
-                                f"▲{abs(gap):.2f}%p"
-
-                                "</span>"
-
-                            )
-
-
+                    else:
 
                         answer += (
-
-                            f"{idx}. "
-
-                            f"{item['bank']} "
-
-                            f"{item['rate']:.2f}% "
-
-                            f"({gap_text})\n"
-
+                            "조건에 맞는 은행이 없습니다."
                         )
-
 
 
                 else:
 
-
-                    answer += (
-
-                        "해당 조건의 은행이 없습니다."
-
+                    answer = (
+                        f"{target_bank} 데이터를 찾을 수 없습니다."
                     )
+
+
+            else:
+
+                answer = (
+                    "비교할 은행을 찾을 수 없습니다."
+                )
 
         # -------------------------------
         # 우리금융 시장 순위

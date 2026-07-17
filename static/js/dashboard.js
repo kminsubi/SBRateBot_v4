@@ -1261,7 +1261,7 @@ async function searchAI(){
         // 검색 영역만 변경
         // -------------------------------
 
-        answer.innerText =
+        answer.innerHTML =
         result;
 
 

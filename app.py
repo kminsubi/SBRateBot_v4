@@ -210,6 +210,7 @@ def normalize(text):
 
 
 
+
 # -------------------------------
 # 상품 데이터 생성
 # -------------------------------
@@ -498,41 +499,27 @@ def find_bank_products(
 
 def get_bank_best_rates(products):
 
-
     bank_map = {}
-
-
 
     for item in products:
 
-
         bank = item["bank"]
 
+        if not bank:
+            continue
 
 
         if (
-
             bank not in bank_map
-
             or
-
-            item["rate"]
-
-            >
-
-            bank_map[bank]["rate"]
-
+            item["rate"] > bank_map[bank]["rate"]
         ):
-
 
             bank_map[bank] = item
 
 
-
     return list(
-
         bank_map.values()
-
     )
 
 
@@ -657,6 +644,29 @@ def extract_number(question):
         )
 
     return None
+
+
+
+# -------------------------------
+# 금리 증감 표시
+# 상승 / 하락 표시
+# -------------------------------
+
+def format_change(change):
+
+    if change > 0:
+
+        return f"🔵 +{change:.2f}%p"
+
+    elif change < 0:
+
+        return f"🔴 ▲{abs(change):.2f}%p"
+
+    else:
+
+        return "0.00%p"
+
+
 
 
 
@@ -2745,7 +2755,7 @@ def ai_search():
 
                         )
 
-        # -------------------------------
+                # -------------------------------
         # 우리금융보다 높은/낮은 상품 검색
         # -------------------------------
 
@@ -2779,6 +2789,7 @@ def ai_search():
                 "우리금융저축은행"
 
             )
+
 
 
             if woori_items:
@@ -2817,6 +2828,14 @@ def ai_search():
                             woori_rate
 
                         )
+
+                        and
+
+                        normalize(x["bank"])
+
+                        !=
+
+                        normalize(woori_best["bank"])
 
                     ]
 
@@ -2859,6 +2878,14 @@ def ai_search():
 
                         )
 
+                        and
+
+                        normalize(x["bank"])
+
+                        !=
+
+                        normalize(woori_best["bank"])
+
                     ]
 
 
@@ -2866,7 +2893,9 @@ def ai_search():
 
                         key=lambda x:
 
-                            x["rate"]
+                            x["rate"],
+
+                        reverse=True
 
                     )
 
@@ -2916,6 +2945,24 @@ def ai_search():
                         )
 
 
+                        if gap > 0:
+
+                            gap_text = (
+
+                                f"<span class='rate-up'>+{gap:.2f}%p</span>"
+
+                            )
+
+                        else:
+
+                            gap_text = (
+
+                                f"<span class='rate-down'>▲{abs(gap):.2f}%p</span>"
+
+                            )
+
+
+
                         answer += (
 
                             f"{idx}. "
@@ -2926,7 +2973,7 @@ def ai_search():
 
                             f"{item['rate']:.2f}% "
 
-                            f"({gap:+.2f}%p)\n"
+                            f"({gap_text})\n"
 
                         )
 
@@ -2938,7 +2985,7 @@ def ai_search():
 
                         "해당 조건의 상품이 없습니다."
 
-                    )               
+                    )
 
         # -------------------------------
         # 우리금융 시장 순위

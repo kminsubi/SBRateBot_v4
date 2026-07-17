@@ -962,3 +962,22 @@ body {
     line-height:1.5;
 
 }
+
+/* AI 검색 금리 증감 표시 */
+
+.rate-up {
+
+    color:#0066ff;
+
+    font-weight:bold;
+
+}
+
+
+.rate-down {
+
+    color:#ff0000;
+
+    font-weight:bold;
+
+}

@@ -1504,31 +1504,59 @@ def api_financial():
     ):
 
 
-        response.append({
+                response.append({
 
             "rank":
-
                 idx,
 
 
             "bank":
-
                 item["bank"],
 
 
             "product":
-
                 item["product"],
 
 
             "rate":
-
                 item["rate"],
 
 
-            "change":
+            # -------------------------------
+            # 금리 증감 표시
+            # 상승 : 파란색
+            # 하락 : 빨간색
+            # -------------------------------
 
-                item["change"]
+            "change":
+                item["change"],
+
+
+            "change_html":
+
+                (
+                    '<span class="rate-change increase">'
+                    f'+{item["change"]:.2f}%p'
+                    '</span>'
+
+                    if item["change"] > 0
+
+                    else
+
+                    (
+                        '<span class="rate-change decrease">'
+                        f'▲{abs(item["change"]):.2f}%p'
+                        '</span>'
+                    )
+
+                    if item["change"] < 0
+
+                    else
+
+                    '<span class="rate-change">'
+                    '0.00%p'
+                    '</span>'
+                )
 
         })
 

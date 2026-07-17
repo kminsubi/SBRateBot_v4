@@ -143,6 +143,7 @@ def clean_bank_name(name):
 def collect_banks():
 
     print()
+
     print(
         "전체 저축은행 목록 수집 시작"
     )
@@ -165,15 +166,20 @@ def collect_banks():
 
 
     response.encoding = (
+
         response.apparent_encoding
+
         or
+
         "utf-8"
+
     )
 
 
     html = response.text
 
 
+    
     # ======================================
     # HTML 태그 제거
     # ======================================
@@ -239,21 +245,15 @@ def collect_banks():
     )
 
 
-    # ======================================
-    # 점포명 추출
+        # ======================================
+    # 저축은행명 추출
     #
-    # BNK(본점)
-    # CK(강릉)
-    # 우리금융(본점)
+    # HTML 실제 구조 대응
     # ======================================
 
     matches = re.findall(
 
-        r"([A-Za-z0-9가-힣]+)"
-        r"\s*"
-        r"\("
-        r"[^()\n]+"
-        r"\)",
+        r">\s*([가-힣A-Za-z0-9]+)\s*<",
 
         text
 

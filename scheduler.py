@@ -1,6 +1,6 @@
 # ==========================================
-# SBRateBot V4 Scheduler TEST VERSION
-# 1분마다 금리 업데이트 테스트
+# SBRateBot V4 Scheduler
+# 매일 익일 00:30 금리 업데이트 실행
 # ==========================================
 
 
@@ -35,7 +35,7 @@ def run_crawler():
     print("=" * 60)
 
     print(
-        "자동 금리 업데이트 테스트 시작"
+        "자동 금리 업데이트 시작"
     )
 
     print(
@@ -87,7 +87,7 @@ def run_crawler():
         print()
 
         print(
-            "자동 금리 업데이트 테스트 완료"
+            "자동 금리 업데이트 완료"
         )
 
 
@@ -124,11 +124,13 @@ def start_scheduler():
 
         run_crawler,
 
-        "interval",
+        "cron",
 
-        minutes=1,
+        hour=0,
 
-        id="test_rate_update",
+        minute=30,
+
+        id="daily_rate_update",
 
         replace_existing=True
 
@@ -148,5 +150,5 @@ def start_scheduler():
 
 
     print(
-        "테스트 업데이트 시간 : 1분마다 실행"
+        "업데이트 시간 : 매일 00:30"
     )

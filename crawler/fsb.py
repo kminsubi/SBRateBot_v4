@@ -58,7 +58,7 @@ BANK_FILE = os.path.join(
 
 
 # ==========================================
-# 중앙회 URL
+# 중앙회 API
 # ==========================================
 
 RATE_URL = (
@@ -68,7 +68,7 @@ RATE_URL = (
 
 BANK_URL = (
     "https://www.fsb.or.kr/"
-    "cosfindquic_0100.act"
+    "ratcodi_0100_02.jct"
 )
 
 
@@ -77,13 +77,6 @@ BANK_URL = (
 # ==========================================
 
 COMMON_HEADERS = {
-
-    "Accept":
-        "text/html,application/xhtml+xml,"
-        "application/xml;q=0.9,*/*;q=0.8",
-
-    "Accept-Language":
-        "ko-KR,ko;q=0.9,en-US;q=0.8",
 
     "User-Agent":
         "Mozilla/5.0 "
@@ -106,9 +99,11 @@ def clean_bank_name(name):
         name or ""
     ).strip()
 
+
     name = html_module.unescape(
         name
     )
+
 
     name = re.sub(
         r"<[^>]+>",
@@ -116,24 +111,27 @@ def clean_bank_name(name):
         name
     )
 
+
     name = name.replace(
         "(주)",
         ""
     )
+
 
     name = name.replace(
         "㈜",
         ""
     )
 
+
     name = name.replace(
         "저축은행",
         ""
     )
 
-    name = name.strip()
 
-    return name
+    return name.strip()
+
 
 
 # ==========================================
@@ -149,11 +147,147 @@ def collect_banks():
     )
 
 
-    response = requests.get(
+    payload = {
+
+
+        "END_NUM":
+            "100000",
+
+
+        "START_NUM":
+            "1",
+
+
+        "DAN":
+            "4",
+
+
+        "JOIN":
+            "1|2|3|4|5|9",
+
+
+        "SWECODE":
+            "",
+
+
+        "ORDERBY":
+            "",
+
+
+        "SEARCH_SELECT_IN":
+            "",
+
+
+        "SEARCH_TEXT_IN":
+            "",
+
+
+        "YN_SEOUL":
+            "1",
+
+
+        "YN_BUSAN":
+            "1",
+
+
+        "YN_DEAGU":
+            "1",
+
+
+        "YN_INCHEON":
+            "1",
+
+
+        "YN_KWANGJU":
+            "1",
+
+
+        "YN_DEAJEON":
+            "1",
+
+
+        "YN_ULSAN":
+            "1",
+
+
+        "YN_SEJONG":
+            "1",
+
+
+        "YN_KYUNGKI":
+            "1",
+
+
+        "YN_KANGWON":
+            "1",
+
+
+        "YN_CHUNGBUK":
+            "1",
+
+
+        "YN_CHUNGNAM":
+            "1",
+
+
+        "YN_JEONBUK":
+            "1",
+
+
+        "YN_JEONNAM":
+            "1",
+
+
+        "YN_KYUNGBUK":
+            "1",
+
+
+        "YN_KYUNGNAM":
+            "1",
+
+
+        "YN_JEJU":
+            "1"
+
+    }
+
+
+    json_text = json.dumps(
+        payload,
+        separators=(
+            ",",
+            ":"
+        )
+    )
+
+
+    response = requests.post(
 
         BANK_URL,
 
-        headers=COMMON_HEADERS,
+        headers={
+
+            "User-Agent":
+                COMMON_HEADERS["User-Agent"],
+
+            "X-Requested-With":
+                "XMLHttpRequest",
+
+            "Content-Type":
+                "application/x-www-form-urlencoded"
+
+        },
+
+
+        data={
+
+            "_JSON_":
+                urllib.parse.quote(
+                    json_text
+                )
+
+        },
+
 
         verify=False,
 
@@ -165,162 +299,48 @@ def collect_banks():
     response.raise_for_status()
 
 
-    response.encoding = (
+    result = response.json()
 
-        response.apparent_encoding
 
-        or
-
-        "utf-8"
-
+    records = result.get(
+        "REC",
+        []
     )
 
 
-    html = response.text
-
-
-    
-    # ======================================
-    # HTML 태그 제거
-    # ======================================
-
-    text = re.sub(
-
-        r"<script.*?</script>",
-
-        " ",
-
-        html,
-
-        flags=(
-            re.IGNORECASE
-            |
-            re.DOTALL
-        )
-
-    )
-
-
-    text = re.sub(
-
-        r"<style.*?</style>",
-
-        " ",
-
-        text,
-
-        flags=(
-            re.IGNORECASE
-            |
-            re.DOTALL
-        )
-
-    )
-
-
-    text = re.sub(
-
-        r"<[^>]+>",
-
-        "\n",
-
-        text
-
-    )
-
-
-    text = html_module.unescape(
-        text
-    )
-
-
-    text = re.sub(
-
-        r"[ \t]+",
-
-        " ",
-
-        text
-
-    )
-
-
-        # ======================================
-    # 저축은행명 추출
-    #
-    # HTML 실제 구조 대응
-    # ======================================
-
-    matches = re.findall(
-
-        r">\s*([가-힣A-Za-z0-9]+)\s*<",
-
-        text
-
+    print(
+        "은행 데이터:",
+        len(records)
     )
 
 
     banks = {}
 
 
-    for name in matches:
+    for item in records:
+
+
+        if not isinstance(
+            item,
+            dict
+        ):
+
+            continue
 
 
         bank = clean_bank_name(
-            name
-        )
 
-
-        if not bank:
-
-            continue
-
-
-        # ==================================
-        # 잘못 잡히는 일반 단어 제외
-        # ==================================
-
-        excluded = {
-
-            "검색결과",
-            "전화번호",
-            "콜센터",
-            "주소",
-            "가능",
-            "불가능",
-            "CD",
-            "CDP",
-            "ATM",
-            "본점",
-            "지점",
-            "금융센터",
-            "영업점",
-            "출장소"
-
-        }
-
-
-        if bank in excluded:
-
-            continue
-
-
-        if len(bank) > 20:
-
-            continue
-
-
-        key = (
-            bank
-            .replace(
-                " ",
+            item.get(
+                "KOR_CO_NM",
                 ""
             )
-            .lower()
+
         )
 
 
-        banks[key] = bank
+        if bank:
+
+            banks[bank] = bank
 
 
     bank_list = sorted(
@@ -329,43 +349,10 @@ def collect_banks():
 
 
     print(
-        "점포 기준 추출 은행 :",
+        "전체 저축은행:",
         len(bank_list)
     )
 
-
-    # ======================================
-    # 수집 실패 보호
-    # ======================================
-
-    if len(bank_list) < 70:
-
-
-        print()
-        print(
-            "추출 은행 목록:"
-        )
-
-
-        for bank in bank_list:
-
-            print(
-                "-",
-                bank
-            )
-
-
-        raise Exception(
-
-            "전체 저축은행 목록 수집 실패 "
-            f"({len(bank_list)}개)"
-
-        )
-
-
-    # ======================================
-    # banks.json 저장
-    # ======================================
 
     with open(
 
@@ -392,100 +379,143 @@ def collect_banks():
 
 
     print(
-        "전체 저축은행 :",
-        len(bank_list)
-    )
-
-
-    print(
         "은행 목록 저장 완료"
     )
 
 
-    print(
-        BANK_FILE
-    )
-
-
     return bank_list
-
-
-# ==========================================
+    # ==========================================
 # 금리 요청 데이터
 # ==========================================
 
-payload = {
+RATE_PAYLOAD = {
 
-    "END_NUM": "100000",
 
-    "START_NUM": "1",
+    "END_NUM":
+        "100000",
 
-    "DAN": "12",
 
-    "JOIN": "1|2|3|4|5|9",
+    "START_NUM":
+        "1",
 
-    "SWECODE": "",
 
-    "ORDERBY": "",
+    "DAN":
+        "12",
 
-    "SEARCH_SELECT_IN": "",
 
-    "SEARCH_TEXT_IN": "",
+    "JOIN":
+        "1|2|3|4|5|9",
 
-    "YN_SEOUL": "1",
 
-    "YN_BUSAN": "1",
+    "SWECODE":
+        "",
 
-    "YN_DEAGU": "1",
 
-    "YN_INCHEON": "1",
+    "ORDERBY":
+        "",
 
-    "YN_KWANGJU": "1",
 
-    "YN_DEAJEON": "1",
+    "SEARCH_SELECT_IN":
+        "",
 
-    "YN_ULSAN": "1",
 
-    "YN_SEJONG": "1",
+    "SEARCH_TEXT_IN":
+        "",
 
-    "YN_SEONGNAM": "1",
 
-    "YN_KANGWON": "1",
+    "YN_SEOUL":
+        "1",
 
-    "YN_CHUNGBUK": "1",
 
-    "YN_CHUNGNAM": "1",
+    "YN_BUSAN":
+        "1",
 
-    "YN_JEONBUK": "1",
 
-    "YN_JEONNAM": "1",
+    "YN_DEAGU":
+        "1",
 
-    "YN_KYUNGBUK": "1",
 
-    "YN_KYUNGNAM": "1",
+    "YN_INCHEON":
+        "1",
 
-    "YN_JEJU": "1"
+
+    "YN_KWANGJU":
+        "1",
+
+
+    "YN_DEAJEON":
+        "1",
+
+
+    "YN_ULSAN":
+        "1",
+
+
+    "YN_SEJONG":
+        "1",
+
+
+    "YN_KYUNGKI":
+        "1",
+
+
+    "YN_KANGWON":
+        "1",
+
+
+    "YN_CHUNGBUK":
+        "1",
+
+
+    "YN_CHUNGNAM":
+        "1",
+
+
+    "YN_JEONBUK":
+        "1",
+
+
+    "YN_JEONNAM":
+        "1",
+
+
+    "YN_KYUNGBUK":
+        "1",
+
+
+    "YN_KYUNGNAM":
+        "1",
+
+
+    "YN_JEJU":
+        "1"
 
 }
 
 
+
 RATE_HEADERS = {
 
-    "Accept": "*/*",
+
+    "Accept":
+        "*/*",
+
 
     "Content-Type":
-        "application/x-www-form-urlencoded; "
-        "charset=UTF-8",
+        "application/x-www-form-urlencoded; charset=UTF-8",
+
 
     "Origin":
         "https://www.fsb.or.kr",
 
+
     "Referer":
-        "https://www.fsb.or.kr/"
-        "ratcodi_0100.act",
+        "https://www.fsb.or.kr/ratcodi_0100.act",
+
 
     "User-Agent":
-        "Mozilla/5.0",
+        COMMON_HEADERS["User-Agent"],
+
 
     "X-Requested-With":
         "XMLHttpRequest"
@@ -493,8 +523,10 @@ RATE_HEADERS = {
 }
 
 
+
+
 # ==========================================
-# 수집 시작
+# 실행
 # ==========================================
 
 print("=" * 70)
@@ -506,19 +538,17 @@ print(
 print("=" * 70)
 
 
+
 try:
 
 
-    # ======================================
-    # 전체 은행 목록
-    # ======================================
+    # --------------------------------------
+    # 은행 목록
+    # --------------------------------------
 
     bank_list = collect_banks()
 
 
-    # ======================================
-    # 금리 데이터 수집
-    # ======================================
 
     print()
 
@@ -527,9 +557,10 @@ try:
     )
 
 
+
     json_text = json.dumps(
 
-        payload,
+        RATE_PAYLOAD,
 
         separators=(
             ",",
@@ -541,12 +572,15 @@ try:
 
     body = {
 
+
         "_JSON_":
+
             urllib.parse.quote(
                 json_text
             )
 
     }
+
 
 
     response = requests.post(
@@ -564,10 +598,13 @@ try:
     )
 
 
+
     response.raise_for_status()
 
 
+
     result = response.json()
+
 
 
     records = result.get(
@@ -576,32 +613,36 @@ try:
     )
 
 
+
     if not isinstance(
         records,
         list
     ):
 
         raise Exception(
-            "REC 데이터 형식 오류"
+            "REC 데이터 오류"
         )
 
 
+
     print(
-        "수집 상품 :",
+        "수집 상품:",
         len(records)
     )
+
 
 
     if len(records) == 0:
 
         raise Exception(
-            "수집 데이터 없음"
+            "상품 데이터 없음"
         )
 
 
-    # ======================================
+
+    # --------------------------------------
     # 기존 데이터 백업
-    # ======================================
+    # --------------------------------------
 
     if os.path.exists(
         LATEST_FILE
@@ -617,11 +658,9 @@ try:
         )
 
 
-    # ======================================
-    # 이전 데이터 로드
-    # ======================================
 
     previous_data = {}
+
 
 
     if os.path.exists(
@@ -640,9 +679,8 @@ try:
         ) as f:
 
 
-            old_list = json.load(
-                f
-            )
+            old_list = json.load(f)
+
 
 
         if isinstance(
@@ -654,22 +692,9 @@ try:
             for old in old_list:
 
 
-                if not isinstance(
-                    old,
-                    dict
-                ):
-
-                    continue
-
-
                 key = (
 
-                    str(
-                        old.get(
-                            "bank",
-                            ""
-                        )
-                    )
+                    str(old.get("bank",""))
 
                     +
 
@@ -677,32 +702,22 @@ try:
 
                     +
 
-                    str(
-                        old.get(
-                            "product",
-                            ""
-                        )
-                    )
+                    str(old.get("product",""))
 
                 )
 
 
-                previous_data[
-                    key
-                ] = old
+                previous_data[key] = old
 
 
-    print(
-        "이전 비교 상품 :",
-        len(previous_data)
-    )
 
 
-    # ======================================
+    # --------------------------------------
     # 데이터 변환
-    # ======================================
+    # --------------------------------------
 
     data = []
+
 
 
     for item in records:
@@ -716,6 +731,7 @@ try:
             continue
 
 
+
         row = {
 
 
@@ -726,6 +742,7 @@ try:
                 ),
 
 
+
             "product":
                 item.get(
                     "PRODUCT_NAME",
@@ -733,144 +750,96 @@ try:
                 ),
 
 
+
             "top_1m":
-                item.get(
-                    "TOP_1M_DAN"
-                ),
+                item.get("TOP_1M_DAN"),
 
 
             "top_3m":
-                item.get(
-                    "TOP_3M_DAN"
-                ),
+                item.get("TOP_3M_DAN"),
 
 
             "top_6m":
-                item.get(
-                    "TOP_6M_DAN"
-                ),
+                item.get("TOP_6M_DAN"),
 
 
             "top_12m":
-                item.get(
-                    "TOP_12M_DAN"
-                ),
+                item.get("TOP_12M_DAN"),
 
 
             "top_24m":
-                item.get(
-                    "TOP_24M_DAN"
-                ),
+                item.get("TOP_24M_DAN"),
 
 
             "top_36m":
-                item.get(
-                    "TOP_36M_DAN"
-                ),
+                item.get("TOP_36M_DAN"),
+
 
 
             "base_1m":
-                item.get(
-                    "JUNG_1M_DAN"
-                ),
+                item.get("JUNG_1M_DAN"),
 
 
             "base_3m":
-                item.get(
-                    "JUNG_3M_DAN"
-                ),
+                item.get("JUNG_3M_DAN"),
 
 
             "base_6m":
-                item.get(
-                    "JUNG_6M_DAN"
-                ),
+                item.get("JUNG_6M_DAN"),
 
 
             "base_12m":
-                item.get(
-                    "JUNG_12M_DAN"
-                ),
+                item.get("JUNG_12M_DAN"),
 
 
             "base_24m":
-                item.get(
-                    "JUNG_24M_DAN"
-                ),
+                item.get("JUNG_24M_DAN"),
 
 
             "base_36m":
-                item.get(
-                    "JUNG_36M_DAN"
-                ),
+                item.get("JUNG_36M_DAN"),
+
 
 
             "reg_date":
-                item.get(
-                    "REG_DATE"
-                ),
+                item.get("REG_DATE"),
 
 
             "join_target":
-                item.get(
-                    "JOIN_TARGET"
-                ),
+                item.get("JOIN_TARGET"),
 
 
             "sweetener":
-                item.get(
-                    "SWEETENER"
-                ),
+                item.get("SWEETENER"),
 
 
             "url":
-                item.get(
-                    "PRODUCT_URL"
-                ),
+                item.get("PRODUCT_URL"),
 
 
             "homepage":
-                item.get(
-                    "URL"
-                ),
+                item.get("URL"),
 
 
             "tel":
-                item.get(
-                    "TEL"
-                ),
+                item.get("TEL"),
 
 
-            "owner":
-                item.get(
-                    "OWNER"
-                ),
 
-
-            "change_1": 0,
-
-            "change_3": 0,
-
-            "change_6": 0,
-
-            "change_12": 0,
-
-            "change_24": 0,
-
-            "change_36": 0
+            "change_1":0,
+            "change_3":0,
+            "change_6":0,
+            "change_12":0,
+            "change_24":0,
+            "change_36":0
 
         }
 
 
-        # ==================================
-        # 전일 대비 계산
-        # ==================================
 
         key = (
 
-            str(
-                row["bank"]
-            )
+            row["bank"]
 
             +
 
@@ -878,16 +847,16 @@ try:
 
             +
 
-            str(
-                row["product"]
-            )
+            row["product"]
 
         )
+
 
 
         old = previous_data.get(
             key
         )
+
 
 
         if old:
@@ -905,25 +874,18 @@ try:
             ]:
 
 
-                today = row.get(
-                    "top_"
-                    +
-                    period
-                    +
-                    "m"
-                )
-
-
-                yesterday = old.get(
-                    "top_"
-                    +
-                    period
-                    +
-                    "m"
-                )
-
-
                 try:
+
+
+                    today = row.get(
+                        "top_"+period+"m"
+                    )
+
+
+                    yesterday = old.get(
+                        "top_"+period+"m"
+                    )
+
 
 
                     if (
@@ -937,39 +899,27 @@ try:
                     ):
 
 
-                        diff = (
+                        row[
 
-                            float(
-                                today
-                            )
+                            "change_"+period
+
+                        ] = round(
+
+                            float(today)
 
                             -
 
-                            float(
-                                yesterday
-                            )
+                            float(yesterday),
 
-                        )
-
-
-                        row[
-
-                            "change_"
-                            +
-                            period
-
-                        ] = round(
-                            diff,
                             2
+
                         )
 
 
-                except (
-                    ValueError,
-                    TypeError
-                ):
+                except:
 
                     pass
+
 
 
         data.append(
@@ -977,9 +927,10 @@ try:
         )
 
 
-    # ======================================
-    # latest_rates 저장
-    # ======================================
+
+    # --------------------------------------
+    # 저장
+    # --------------------------------------
 
     with open(
 
@@ -1005,9 +956,7 @@ try:
         )
 
 
-    # ======================================
-    # 업데이트 정보
-    # ======================================
+
 
     update_info = {
 
@@ -1027,6 +976,7 @@ try:
             len(bank_list)
 
     }
+
 
 
     with open(
@@ -1053,6 +1003,7 @@ try:
         )
 
 
+
     print()
 
     print(
@@ -1061,41 +1012,21 @@ try:
 
 
     print(
-        LATEST_FILE
-    )
-
-
-    print()
-
-    print(
-        "업데이트 시간:",
-        update_info[
-            "last_update"
-        ]
-    )
-
-
-    print(
         "상품 수:",
-        update_info[
-            "count"
-        ]
+        len(data)
     )
 
 
     print(
-        "전체 저축은행 수:",
-        update_info[
-            "bank_count"
-        ]
+        "은행 수:",
+        len(bank_list)
     )
 
-
-    print()
 
     print(
         "크롤링 완료"
     )
+
 
 
 except Exception as e:
@@ -1109,7 +1040,7 @@ except Exception as e:
 
 
     print(
-        str(e)
+        e
     )
 
 

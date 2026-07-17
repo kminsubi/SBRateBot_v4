@@ -802,9 +802,24 @@ def find_target_bank(question):
     bank_alias = {
 
 
+        "우리금융저축은행":
+
+            "우리금융저축은행",
+
+
         "우리금융":
 
             "우리금융저축은행",
+
+
+        "우리저축":
+
+            "우리금융저축은행",
+
+
+        "신한저축은행":
+
+            "신한저축은행",
 
 
         "신한":
@@ -812,9 +827,19 @@ def find_target_bank(question):
             "신한저축은행",
 
 
+        "하나저축은행":
+
+            "하나저축은행",
+
+
         "하나":
 
             "하나저축은행",
+
+
+        "KB저축은행":
+
+            "KB저축은행",
 
 
         "kb":
@@ -822,9 +847,19 @@ def find_target_bank(question):
             "KB저축은행",
 
 
+        "SBI저축은행":
+
+            "SBI저축은행",
+
+
         "sbi":
 
             "SBI저축은행",
+
+
+        "OK저축은행":
+
+            "OK저축은행",
 
 
         "ok":
@@ -2672,19 +2707,38 @@ def ai_search():
                         )
 
                 # -------------------------------
-        # 특정 은행보다 높은/낮은 은행 검색
+        # 특정 은행 대비 금리 비교 검색
         # 예)
-        # 우리금융저축은행보다 높은 곳
-        # 우리금융저축은행보다 낮은 곳
+        # 우리금융보다 높은 곳
+        # 우리금융보다 좋은 곳
+        # 우리금융보다 경쟁력 있는 곳
+        # 우리금융보다 낮은 곳
         # -------------------------------
 
         elif (
+
             "보다" in question
-            and (
+
+            and
+
+            (
+
                 "높은" in question
+
                 or
+
+                "좋은" in question
+
+                or
+
+                "경쟁력" in question
+
+                or
+
                 "낮은" in question
+
             )
+
         ):
 
 
@@ -2706,8 +2760,11 @@ def ai_search():
 
 
                     target_best = max(
+
                         target_items,
+
                         key=lambda x:x["rate"]
+
                     )
 
 
@@ -2716,7 +2773,9 @@ def ai_search():
 
 
                     bank_products = get_bank_best_rates(
+
                         products
+
                     )
 
 
@@ -2728,14 +2787,28 @@ def ai_search():
                         for x in bank_products
 
                         if normalize(x["bank"])
+
                         !=
+
                         normalize(target_bank)
 
                     ]
 
 
 
-                    if "높은" in question:
+                    if (
+
+                        "높은" in question
+
+                        or
+
+                        "좋은" in question
+
+                        or
+
+                        "경쟁력" in question
+
+                    ):
 
 
                         result = [
@@ -2749,14 +2822,10 @@ def ai_search():
                         ]
 
 
-                        result.sort(
-                            key=lambda x:x["rate"],
-                            reverse=True
-                        )
-
-
                         title = (
+
                             f"📈 {target_bank}보다 높은 금리 은행"
+
                         )
 
 
@@ -2774,24 +2843,31 @@ def ai_search():
                         ]
 
 
-                        result.sort(
-                            key=lambda x:x["rate"],
-                            reverse=True
-                        )
-
-
                         title = (
+
                             f"📉 {target_bank}보다 낮은 금리 은행"
+
                         )
+
+
+
+                    result.sort(
+
+                        key=lambda x:x["rate"],
+
+                        reverse=True
+
+                    )
 
 
 
                     answer = (
 
-                        f"{title}<br><br>"
+                        f"{title}\n\n"
 
                         f"{target_bank} 기준금리 : "
-                        f"{target_rate:.2f}%<br><br>"
+
+                        f"{target_rate:.2f}%\n\n"
 
                     )
 
@@ -2801,33 +2877,53 @@ def ai_search():
 
 
                         for idx,item in enumerate(
+
                             result[:10],
+
                             start=1
+
                         ):
 
 
                             gap = round(
-                                item["rate"] - target_rate,
+
+                                item["rate"]
+
+                                -
+
+                                target_rate,
+
                                 2
+
                             )
 
 
 
                             if gap > 0:
 
+
                                 gap_text = (
+
                                     f'<span class="rate-change increase">'
-                                    f'+{gap:.2f}%p'
+
+                                    f' +{gap:.2f}%p'
+
                                     f'</span>'
+
                                 )
 
 
                             else:
 
+
                                 gap_text = (
+
                                     f'<span class="rate-change decrease">'
-                                    f'▲{abs(gap):.2f}%p'
+
+                                    f' ▲{abs(gap):.2f}%p'
+
                                     f'</span>'
+
                                 )
 
 
@@ -2835,8 +2931,11 @@ def ai_search():
                             answer += (
 
                                 f"{idx}. "
+
                                 f"{item['bank']} "
+
                                 f"{item['rate']:.2f}% "
+
                                 f"({gap_text})<br>"
 
                             )
@@ -2844,22 +2943,31 @@ def ai_search():
 
                     else:
 
+
                         answer += (
+
                             "조건에 맞는 은행이 없습니다."
+
                         )
 
 
                 else:
 
+
                     answer = (
+
                         f"{target_bank} 데이터를 찾을 수 없습니다."
+
                     )
 
 
             else:
 
+
                 answer = (
+
                     "비교할 은행을 찾을 수 없습니다."
+
                 )
 
         # -------------------------------

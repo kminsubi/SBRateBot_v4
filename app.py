@@ -627,8 +627,174 @@ def get_market_bank_rank(
 
     }
 
+# -------------------------------
+# AI 검색 V4.1 분석 엔진
+# Python Intent 처리 함수
+# -------------------------------
 
 
+def sort_rate_products(products, reverse=True):
+
+    return sorted(
+        products,
+        key=lambda x: x["rate"],
+        reverse=reverse
+    )
+
+
+
+def extract_number(question):
+
+    match = re.search(
+        r"(\d+(?:\.\d+)?)",
+        question
+    )
+
+    if match:
+
+        return float(
+            match.group(1)
+        )
+
+    return None
+
+
+
+def get_top_products(products, count=5):
+
+    return sort_rate_products(
+        products,
+        True
+    )[:count]
+
+
+
+def get_bottom_products(products, count=5):
+
+    return sort_rate_products(
+        products,
+        False
+    )[:count]
+
+
+
+def filter_over_rate(products, rate):
+
+    return [
+        x
+        for x in products
+        if x["rate"] >= rate
+    ]
+
+
+
+def filter_under_rate(products, rate):
+
+    return [
+        x
+        for x in products
+        if x["rate"] <= rate
+    ]
+
+
+
+def search_product_keyword(products, keyword):
+
+    keyword = normalize(keyword)
+
+    result = []
+
+    for item in products:
+
+        if (
+            keyword in normalize(item["bank"])
+            or
+            keyword in normalize(item["product"])
+        ):
+
+            result.append(item)
+
+
+    return result
+
+
+
+def compare_two_banks(products, bank1, bank2):
+
+    bank1_items = find_bank_products(
+        products,
+        bank1
+    )
+
+    bank2_items = find_bank_products(
+        products,
+        bank2
+    )
+
+
+    if not bank1_items or not bank2_items:
+
+        return None
+
+
+    bank1_best = max(
+        bank1_items,
+        key=lambda x:x["rate"]
+    )
+
+
+    bank2_best = max(
+        bank2_items,
+        key=lambda x:x["rate"]
+    )
+
+
+    return {
+
+        "bank1": bank1_best,
+
+        "bank2": bank2_best,
+
+        "difference":
+            round(
+                bank1_best["rate"]
+                -
+                bank2_best["rate"],
+                2
+            )
+
+    }
+
+
+
+def find_target_bank(question):
+
+    banks = FINANCIAL_BANKS + [
+
+        "SBI저축은행",
+
+        "OK저축은행",
+
+        "웰컴저축은행",
+
+        "페퍼저축은행",
+
+        "예가람저축은행"
+
+    ]
+
+
+    q = normalize(question)
+
+
+    for bank in banks:
+
+        if normalize(bank) in q:
+
+            return bank
+
+
+    return None
 
 # -------------------------------
 # 메인 페이지
@@ -777,7 +943,6 @@ def api_woori():
     )
 
 
-
     products = [
 
         x
@@ -789,6 +954,20 @@ def api_woori():
     ]
 
 
+    if not products:
+
+
+        return jsonify({
+
+
+            "bank":
+
+                "우리금융저축은행"
+
+
+        })
+
+
 
     woori_products = find_bank_products(
 
@@ -797,7 +976,6 @@ def api_woori():
         "우리금융저축은행"
 
     )
-
 
 
     if not woori_products:
@@ -819,10 +997,15 @@ def api_woori():
 
         key=lambda x:
 
-        x["rate"]
+            x["rate"]
 
     )
 
+
+
+    # -------------------------------
+    # 시장 순위
+    # -------------------------------
 
 
     rank = get_market_bank_rank(
@@ -835,7 +1018,12 @@ def api_woori():
 
 
 
-    avg = sum(
+    # -------------------------------
+    # 시장 평균 / 최고 / 최저
+    # -------------------------------
+
+
+    avg_rate = sum(
 
         x["rate"]
 
@@ -843,6 +1031,31 @@ def api_woori():
 
     ) / len(products)
 
+
+
+    highest_rate = max(
+
+        x["rate"]
+
+        for x in products
+
+    )
+
+
+
+    lowest_rate = min(
+
+        x["rate"]
+
+        for x in products
+
+    )
+
+
+
+    # -------------------------------
+    # 금융지주 순위
+    # -------------------------------
 
 
     financial_products = []
@@ -861,7 +1074,6 @@ def api_woori():
         )
 
 
-
         if items:
 
 
@@ -873,7 +1085,7 @@ def api_woori():
 
                     key=lambda x:
 
-                    x["rate"]
+                        x["rate"]
 
                 )
 
@@ -885,7 +1097,7 @@ def api_woori():
 
         key=lambda x:
 
-        x["rate"],
+            x["rate"],
 
         reverse=True
 
@@ -915,9 +1127,11 @@ def api_woori():
 
     return jsonify({
 
+
         "bank":
 
             woori["bank"],
+
 
 
         "product":
@@ -925,9 +1139,11 @@ def api_woori():
             woori["product"],
 
 
+
         "rate":
 
             woori["rate"],
+
 
 
         "market_rank":
@@ -935,9 +1151,11 @@ def api_woori():
             rank["rank"],
 
 
+
         "market_total":
 
             rank["total"],
+
 
 
         "financial_rank":
@@ -945,17 +1163,49 @@ def api_woori():
             financial_rank,
 
 
+
+        # 평균금리 대비
+
         "average_gap":
 
             round(
 
-                woori["rate"] - avg,
+                woori["rate"] - avg_rate,
+
+                2
+
+            ),
+
+
+
+        # 최고금리 대비
+
+        "highest_gap":
+
+            round(
+
+                woori["rate"] - highest_rate,
+
+                2
+
+            ),
+
+
+
+        # 최저금리 대비
+
+        "lowest_gap":
+
+            round(
+
+                woori["rate"] - lowest_rate,
 
                 2
 
             )
 
     })
+
     # -------------------------------
 # 시장 TOP10
 # -------------------------------
@@ -1521,8 +1771,10 @@ def api_ai():
 
 
 # -------------------------------
-# AI 검색
+# AI 검색 V4.1
+# Python Intent + Gemini 분리
 # -------------------------------
+
 
 @app.route(
     "/api/ai/search",
@@ -1534,36 +1786,82 @@ def ai_search():
 
         data = request.json
 
+
         question = str(
+
             data.get(
+
                 "question",
+
                 ""
+
             )
+
         ).strip()
+
 
 
         if not question:
 
+
             return jsonify({
 
                 "answer":
+
                     "질문을 입력해주세요."
 
             })
 
 
-        q = normalize(question)
+
+        q = normalize(
+
+            question
+
+        )
+
+
+
+        # -------------------------------
+        # 검색 기간 선택
+        # 기본 12개월
+        # -------------------------------
+
+        search_period = "12개월"
+
+
+        if "1개월" in question:
+
+            search_period = "1개월"
+
+        elif "3개월" in question:
+
+            search_period = "3개월"
+
+        elif "6개월" in question:
+
+            search_period = "6개월"
+
+        elif "24개월" in question:
+
+            search_period = "24개월"
+
+        elif "36개월" in question:
+
+            search_period = "36개월"
+
 
 
         products = unique_products(
 
             build_products(
 
-                "12개월"
+                search_period
 
             )
 
         )
+
 
 
         products = [
@@ -1577,53 +1875,8 @@ def ai_search():
         ]
 
 
+
         answer = ""
-
-
-
-        # -------------------------------
-        # 최저 금리
-        # -------------------------------
-
-        if any(
-
-            x in question
-
-            for x in [
-
-                "최저",
-
-                "낮은",
-
-                "가장 낮은"
-
-            ]
-
-        ):
-
-
-            lowest = min(
-
-                products,
-
-                key=lambda x:
-
-                x["rate"]
-
-            )
-
-
-            answer = (
-
-                "📉 최저금리 상품\n\n"
-
-                f"은행 : {lowest['bank']}\n"
-
-                f"상품 : {lowest['product']}\n"
-
-                f"금리 : {lowest['rate']:.2f}%"
-
-            )
 
 
 
@@ -1631,49 +1884,55 @@ def ai_search():
         # 최고 금리
         # -------------------------------
 
-        elif any(
+
+        if any(
 
             x in question
 
             for x in [
 
-                "최고",
+                "최고금리",
 
-                "가장 높은"
+                "최고 금리",
+
+                "가장 높은",
+
+                "높은 금리"
 
             ]
 
         ):
 
 
-            highest = max(
+            item = max(
 
                 products,
 
                 key=lambda x:
 
-                x["rate"]
+                    x["rate"]
 
             )
 
 
             answer = (
 
-                "📈 최고금리 상품\n\n"
+                f"📈 {search_period} 최고금리\n\n"
 
-                f"은행 : {highest['bank']}\n"
+                f"은행 : {item['bank']}\n"
 
-                f"상품 : {highest['product']}\n"
+                f"상품 : {item['product']}\n"
 
-                f"금리 : {highest['rate']:.2f}%"
+                f"금리 : {item['rate']:.2f}%"
 
             )
 
 
 
         # -------------------------------
-        # 시장 분석
+        # 최저 금리
         # -------------------------------
+
 
         elif any(
 
@@ -1681,185 +1940,1072 @@ def ai_search():
 
             for x in [
 
-                "시장",
+                "최저금리",
 
-                "분석",
+                "최저 금리",
 
-                "동향",
+                "가장 낮은",
 
-                "전망",
-
-                "상황"
+                "낮은 금리"
 
             ]
 
         ):
 
 
-            avg = sum(
-
-                x["rate"]
-
-                for x in products
-
-            ) / len(products)
-
-
-            highest = max(
+            item = min(
 
                 products,
 
                 key=lambda x:
 
-                x["rate"]
-
-            )
-
-
-            lowest = min(
-
-                products,
-
-                key=lambda x:
-
-                x["rate"]
-
-            )
-
-
-            spread = (
-
-                highest["rate"]
-
-                -
-
-                lowest["rate"]
+                    x["rate"]
 
             )
 
 
             answer = (
 
-                "📊 정기예금 시장 분석\n\n"
+                f"📉 {search_period} 최저금리\n\n"
 
-                f"분석상품 : {len(products)}개\n"
+                f"은행 : {item['bank']}\n"
 
-                f"평균금리 : {avg:.2f}%\n"
+                f"상품 : {item['product']}\n"
 
-                f"최고금리 : {highest['bank']} "
-
-                f"{highest['rate']:.2f}%\n"
-
-                f"최저금리 : {lowest['bank']} "
-
-                f"{lowest['rate']:.2f}%\n"
-
-                f"금리 스프레드 : {spread:.2f}%p"
+                f"금리 : {item['rate']:.2f}%"
 
             )
 
 
 
         # -------------------------------
-        # 은행 경쟁력 분석
+        # TOP 검색
+        # 예) 3개월 TOP5
         # -------------------------------
 
-        elif any(
 
-            x in question
+        elif (
 
-            for x in [
+            "TOP"
 
-                "경쟁력",
+            in question.upper()
 
-                "비교",
+            or
 
-                "어때"
+            "상위"
 
-            ]
+            in question
 
         ):
 
 
-            target = None
+            count = extract_number(
+
+                question
+
+            )
 
 
-            banks = FINANCIAL_BANKS + [
+            if not count:
 
-                "SBI저축은행",
-
-                "OK저축은행",
-
-                "웰컴저축은행",
-
-                "페퍼저축은행"
-
-            ]
+                count = 5
 
 
 
-            for bank in banks:
+            items = get_top_products(
 
+                products,
 
-                if normalize(bank) in q:
+                int(count)
 
-
-                    target = bank
-
-                    break
+            )
 
 
 
-            if target:
+            answer = (
+
+                f"🏆 {search_period} 금리 TOP {int(count)}\n\n"
+
+            )
 
 
-                items = find_bank_products(
+            for idx,item in enumerate(
 
-                    products,
+                items,
 
-                    target
+                start=1
+
+            ):
+
+
+                answer += (
+
+                    f"{idx}. "
+
+                    f"{item['bank']} "
+
+                    f"{item['product']} "
+
+                    f"{item['rate']:.2f}%\n"
 
                 )
 
 
-                if items:
+
+        # -------------------------------
+        # 하위 검색
+        # -------------------------------
 
 
-                    best = max(
+        elif (
 
-                        items,
+            "하위"
 
-                        key=lambda x:
+            in question
 
-                        x["rate"]
+            or
 
-                    )
+            "낮은순"
+
+            in question
+
+        ):
 
 
-                    rank = get_market_bank_rank(
+            count = extract_number(
 
-                        products,
+                question
 
-                        best["bank"]
+            )
 
-                    )
+
+            if not count:
+
+                count = 5
+
+
+
+            items = get_bottom_products(
+
+                products,
+
+                int(count)
+
+            )
+
+
+
+            answer = (
+
+                f"📉 {search_period} 낮은 금리 TOP {int(count)}\n\n"
+
+            )
+
+
+            for idx,item in enumerate(
+
+                items,
+
+                start=1
+
+            ):
+
+
+                answer += (
+
+                    f"{idx}. "
+
+                    f"{item['bank']} "
+
+                    f"{item['product']} "
+
+                    f"{item['rate']:.2f}%\n"
+
+                )
+                        # -------------------------------
+        # 금리 이상 검색
+        # 예) 3% 이상
+        # -------------------------------
+
+        elif (
+
+            "이상"
+
+            in question
+
+            and extract_number(question)
+
+        ):
+
+
+            rate = extract_number(
+
+                question
+
+            )
+
+
+            items = filter_over_rate(
+
+                products,
+
+                rate
+
+            )
+
+
+            answer = (
+
+                f"📌 {search_period} {rate}% 이상 상품\n\n"
+
+            )
+
+
+            for item in items[:10]:
+
+
+                answer += (
+
+                    f"{item['bank']} "
+
+                    f"{item['product']} "
+
+                    f"{item['rate']:.2f}%\n"
+
+                )
+
+
+
+        # -------------------------------
+        # 금리 이하 검색
+        # 예) 3% 이하
+        # -------------------------------
+
+        elif (
+
+            "이하"
+
+            in question
+
+            and extract_number(question)
+
+        ):
+
+
+            rate = extract_number(
+
+                question
+
+            )
+
+
+            items = filter_under_rate(
+
+                products,
+
+                rate
+
+            )
+
+
+            answer = (
+
+                f"📌 {search_period} {rate}% 이하 상품\n\n"
+
+            )
+
+
+            for item in items[:10]:
+
+
+                answer += (
+
+                    f"{item['bank']} "
+
+                    f"{item['product']} "
+
+                    f"{item['rate']:.2f}%\n"
+
+                )
+
+
+
+        # -------------------------------
+        # 은행 비교
+        # 예) KB vs 신한
+        # -------------------------------
+
+        elif (
+
+            "vs"
+
+            in q
+
+            or
+
+            "비교"
+
+            in question
+
+        ):
+
+
+            banks = []
+
+
+            for bank in FINANCIAL_BANKS + [
+
+                "KB저축은행",
+
+                "신한저축은행",
+
+                "SBI저축은행",
+
+                "OK저축은행"
+
+            ]:
+
+
+                if normalize(bank) in q:
+
+                    banks.append(bank)
+
+
+
+            if len(banks) >= 2:
+
+
+                result = compare_two_banks(
+
+                    products,
+
+                    banks[0],
+
+                    banks[1]
+
+                )
+
+
+                if result:
 
 
                     answer = (
 
-                        f"📌 {best['bank']} 경쟁력 분석\n\n"
+                        "⚖️ 은행 비교\n\n"
 
-                        f"대표상품 : {best['product']}\n"
+                        f"{banks[0]}\n"
 
-                        f"금리 : {best['rate']:.2f}%\n"
+                        f"금리 : {result['bank1']['rate']:.2f}%\n\n"
 
-                        f"시장순위 : "
+                        f"{banks[1]}\n"
 
-                        f"{rank['rank']}위 / "
+                        f"금리 : {result['bank2']['rate']:.2f}%\n\n"
 
-                        f"{rank['total']}개사"
+                        f"차이 : "
+
+                        f"{result['difference']:.2f}%p"
 
                     )
+
+
+
+                # -------------------------------
+        # 우리금융 경쟁력 분석
+        # -------------------------------
+
+        elif (
+
+            "우리금융 경쟁력" in question
+
+            and
+
+            "보다" not in question
+
+        ):
+
+
+            woori_items = find_bank_products(
+
+                products,
+
+                "우리금융저축은행"
+
+            )
+
+
+            if woori_items:
+
+
+                woori_best = max(
+
+                    woori_items,
+
+                    key=lambda x:x["rate"]
+
+                )
+
+
+                higher = [
+
+                    x
+
+                    for x in products
+
+                    if x["rate"] > woori_best["rate"]
+
+                    and normalize(x["bank"])
+
+                    != normalize(woori_best["bank"])
+
+                ]
+
+
+                lower = [
+
+                    x
+
+                    for x in products
+
+                    if x["rate"] < woori_best["rate"]
+
+                    and normalize(x["bank"])
+
+                    != normalize(woori_best["bank"])
+
+                ]
+
+
+                higher.sort(
+
+                    key=lambda x:x["rate"],
+
+                    reverse=True
+
+                )
+
+
+                lower.sort(
+
+                    key=lambda x:x["rate"],
+
+                    reverse=True
+
+                )
+
+
+                answer = (
+
+                    "🏦 우리금융저축은행 경쟁력 분석\n\n"
+
+                    f"대표금리 : {woori_best['rate']:.2f}%\n\n"
+
+                    f"우리금융보다 높은 상품 : {len(higher)}개\n"
+
+                    f"우리금융보다 낮은 상품 : {len(lower)}개\n"
+
+                )
+
+
+                if higher:
+
+
+                    answer += "\n📈 상위 경쟁상품 TOP5\n\n"
+
+
+                    for item in higher[:5]:
+
+
+                        gap = round(
+
+                            item["rate"]
+
+                            -
+
+                            woori_best["rate"],
+
+                            2
+
+                        )
+
+
+                        answer += (
+
+                            f"{item['bank']} "
+
+                            f"{item['rate']:.2f}% "
+
+                            f"(+{gap:.2f}%p)\n"
+
+                        )
+
+
+                if lower:
+
+
+                    answer += "\n📉 하위 경쟁상품 TOP5\n\n"
+
+
+                    for item in lower[:5]:
+
+
+                        gap = round(
+
+                            woori_best["rate"]
+
+                            -
+
+                            item["rate"],
+
+                            2
+
+                        )
+
+
+                        answer += (
+
+                            f"{item['bank']} "
+
+                            f"{item['rate']:.2f}% "
+
+                            f"(-{gap:.2f}%p)\n"
+
+                        )
+
+        # -------------------------------
+        # 우리금융 자연어 경쟁력 분석
+        # 예)
+        # 우리금융 경쟁력 어때
+        # 우리보다 낮은 곳
+        # 우리보다 좋은 곳
+        # -------------------------------
+
+        elif (
+
+    "우리금융"
+
+    in question
+
+    and any(
+
+        x in question
+
+        for x in [
+
+            "경쟁력",
+
+            "어때",
+
+            "위치",
+
+            "비교"
+
+        ]
+
+    )
+
+    and not any(
+
+        x in question
+
+        for x in [
+
+            "보다",
+
+            "높은",
+
+            "낮은",
+
+            "이상",
+
+            "이하"
+
+        ]
+
+    )
+
+):
+
+
+            woori_items = find_bank_products(
+
+                products,
+
+                "우리금융저축은행"
+
+            )
+
+
+            if woori_items:
+
+
+                woori_best = max(
+
+                    woori_items,
+
+                    key=lambda x:
+
+                        x["rate"]
+
+                )
+
+
+                rank = get_market_bank_rank(
+
+                    products,
+
+                    woori_best["bank"]
+
+                )
+
+
+                avg_rate = sum(
+
+                    x["rate"]
+
+                    for x in products
+
+                ) / len(products)
+
+
+
+                higher = [
+
+                    x
+
+                    for x in products
+
+                    if (
+
+                        x["rate"]
+
+                        >
+
+                        woori_best["rate"]
+
+                    )
+
+                    and
+
+                    normalize(x["bank"])
+
+                    !=
+
+                    normalize(woori_best["bank"])
+
+                ]
+
+
+
+                lower = [
+
+                    x
+
+                    for x in products
+
+                    if (
+
+                        x["rate"]
+
+                        <
+
+                        woori_best["rate"]
+
+                    )
+
+                    and
+
+                    normalize(x["bank"])
+
+                    !=
+
+                    normalize(woori_best["bank"])
+
+                ]
+
+
+
+                higher.sort(
+
+                    key=lambda x:
+
+                        x["rate"],
+
+                    reverse=True
+
+                )
+
+
+                lower.sort(
+
+                    key=lambda x:
+
+                        x["rate"],
+
+                    reverse=True
+
+                )
+
+
+
+                gap = round(
+
+                    woori_best["rate"]
+
+                    -
+
+                    avg_rate,
+
+                    2
+
+                )
+
+
+
+                answer = (
+
+                    "🏦 우리금융저축은행 경쟁력 분석\n\n"
+
+                    f"대표금리 : {woori_best['rate']:.2f}%\n"
+
+                    f"시장순위 : {rank['rank']}위 / {rank['total']}개사\n"
+
+                    f"평균 대비 : {gap:+.2f}%p\n\n"
+
+                    f"우리보다 높은 금리 : {len(higher)}개\n"
+
+                    f"우리보다 낮은 금리 : {len(lower)}개\n"
+
+                )
+
+
+
+                if higher:
+
+
+                    answer += "\n📈 상위 경쟁사\n\n"
+
+
+                    for item in higher[:5]:
+
+
+                        diff = round(
+
+                            item["rate"]
+
+                            -
+
+                            woori_best["rate"],
+
+                            2
+
+                        )
+
+
+                        answer += (
+
+                            f"{item['bank']} "
+
+                            f"{item['rate']:.2f}% "
+
+                            f"(+{diff:.2f}%p)\n"
+
+                        )
+
+
+
+                if lower:
+
+
+                    answer += "\n📉 하위 경쟁사\n\n"
+
+
+                    for item in lower[:5]:
+
+
+                        diff = round(
+
+                            woori_best["rate"]
+
+                            -
+
+                            item["rate"],
+
+                            2
+
+                        )
+
+
+                        answer += (
+
+                            f"{item['bank']} "
+
+                            f"{item['rate']:.2f}% "
+
+                            f"(-{diff:.2f}%p)\n"
+
+                        )
+
+        # -------------------------------
+        # 우리금융보다 높은/낮은 상품 검색
+        # -------------------------------
+
+        elif (
+
+            "우리금융보다"
+
+            in question
+
+            and (
+
+                "높은"
+
+                in question
+
+                or
+
+                "낮은"
+
+                in question
+
+            )
+
+        ):
+
+
+            woori_items = find_bank_products(
+
+                products,
+
+                "우리금융저축은행"
+
+            )
+
+
+            if woori_items:
+
+
+                woori_best = max(
+
+                    woori_items,
+
+                    key=lambda x:
+
+                        x["rate"]
+
+                )
+
+
+                woori_rate = woori_best["rate"]
+
+
+
+                if "높은" in question:
+
+
+                    result = [
+
+                        x
+
+                        for x in products
+
+                        if (
+
+                            x["rate"]
+
+                            >
+
+                            woori_rate
+
+                        )
+
+                    ]
+
+
+                    result.sort(
+
+                        key=lambda x:
+
+                            x["rate"],
+
+                        reverse=True
+
+                    )
+
+
+                    title = (
+
+                        "📈 우리금융보다 높은 금리 상품"
+
+                    )
+
+
+
+                else:
+
+
+                    result = [
+
+                        x
+
+                        for x in products
+
+                        if (
+
+                            x["rate"]
+
+                            <
+
+                            woori_rate
+
+                        )
+
+                    ]
+
+
+                    result.sort(
+
+                        key=lambda x:
+
+                            x["rate"]
+
+                    )
+
+
+                    title = (
+
+                        "📉 우리금융보다 낮은 금리 상품"
+
+                    )
+
+
+
+                answer = (
+
+                    f"{title}\n\n"
+
+                    f"우리금융 기준금리 : "
+
+                    f"{woori_rate:.2f}%\n\n"
+
+                )
+
+
+
+                if result:
+
+
+                    for idx,item in enumerate(
+
+                        result[:10],
+
+                        start=1
+
+                    ):
+
+
+                        gap = round(
+
+                            item["rate"]
+
+                            -
+
+                            woori_rate,
+
+                            2
+
+                        )
+
+
+                        answer += (
+
+                            f"{idx}. "
+
+                            f"{item['bank']} "
+
+                            f"{item['product']} "
+
+                            f"{item['rate']:.2f}% "
+
+                            f"({gap:+.2f}%p)\n"
+
+                        )
+
+
+                else:
+
+
+                    answer += (
+
+                        "해당 조건의 상품이 없습니다."
+
+                    )               
+
+        # -------------------------------
+        # 우리금융 시장 순위
+        # -------------------------------
+
+        elif (
+
+            "우리금융"
+
+            in question
+
+            and
+
+            "순위"
+
+            in question
+
+        ):
+
+
+            woori_items = find_bank_products(
+
+                products,
+
+                "우리금융저축은행"
+
+            )
+
+
+            if woori_items:
+
+
+                item = max(
+
+                    woori_items,
+
+                    key=lambda x:
+
+                        x["rate"]
+
+                )
+
+
+                rank = get_market_bank_rank(
+
+                    products,
+
+                    item["bank"]
+
+                )
+
+
+                answer = (
+
+                    "🏦 우리금융저축은행 시장 순위\n\n"
+
+                    f"기간 : {search_period}\n"
+
+                    f"대표상품 : {item['product']}\n"
+
+                    f"금리 : {item['rate']:.2f}%\n"
+
+                    f"순위 : {rank['rank']}위 / "
+
+                    f"{rank['total']}개사"
+
+                )
 
 
 
@@ -1870,25 +3016,13 @@ def ai_search():
         if not answer:
 
 
-            result = []
+            result = search_product_keyword(
 
+                products,
 
-            for item in products:
+                question
 
-
-                if (
-
-                    q in normalize(item["bank"])
-
-                    or
-
-                    q in normalize(item["product"])
-
-                ):
-
-
-                    result.append(item)
-
+            )
 
 
             if result:
@@ -1896,7 +3030,7 @@ def ai_search():
 
                 answer = (
 
-                    "📌 검색 결과\n\n"
+                    f"📌 {search_period} 검색 결과\n\n"
 
                 )
 
@@ -1916,65 +3050,204 @@ def ai_search():
 
 
 
+        # -------------------------------
+        # Gemini 전망 분석
+        # 단순검색과 분리
+        # -------------------------------
+
+
+        gemini_required = any(
+
+            x in question
+
+            for x in [
+
+                "전망",
+
+                "예측",
+
+                "전략",
+
+                "보고서",
+
+                "시장 전망",
+
+                "금리 전망"
+
+            ]
+
+        )
+
+
+
+        if gemini_required:
+
+
+            try:
+
+
+                avg_rate = sum(
+
+                    x["rate"]
+
+                    for x in products
+
+                ) / len(products)
+
+
+
+                highest = max(
+
+                    products,
+
+                    key=lambda x:
+
+                        x["rate"]
+
+                )
+
+
+
+                lowest = min(
+
+                    products,
+
+                    key=lambda x:
+
+                        x["rate"]
+
+                )
+
+
+
+                market_context = {
+
+
+                    "검색기간":
+
+                        search_period,
+
+
+                    "상품수":
+
+                        len(products),
+
+
+                    "평균금리":
+
+                        round(avg_rate,2),
+
+
+                    "최고금리":
+
+                        highest,
+
+
+                    "최저금리":
+
+                        lowest,
+
+
+                    "상품데이터":
+
+                        products[:30]
+
+                }
+
+
+
+                market_data = json.dumps(
+
+                    market_context,
+
+                    ensure_ascii=False
+
+                )
+
+
+
+                prompt_question = (
+
+                    "당신은 저축은행 예금금리 전략 담당자입니다.\n\n"
+
+                    "현재 금리 데이터를 단순 요약하지 말고 "
+
+                    "시장 전망과 전략 관점으로 분석하세요.\n\n"
+
+                    "반드시 포함:\n"
+
+                    "1. 향후 금리 방향 전망\n"
+
+                    "2. 저축은행 경쟁 변화\n"
+
+                    "3. 고객 유치 전략\n"
+
+                    "4. 우리금융저축은행 대응 방향\n\n"
+
+                    "질문:\n"
+
+                    + question
+
+                )
+
+
+
+                ai_comment = ask_gemini(
+
+                    prompt_question,
+
+                    market_data
+
+                )
+
+
+
+                if answer:
+
+
+                    answer += (
+
+                        "\n\n"
+
+                        "🤖 AI 전문가 분석\n\n"
+
+                        + ai_comment
+
+                    )
+
+
+                else:
+
+
+                    answer = (
+
+                        "🤖 AI 전문가 분석\n\n"
+
+                        + ai_comment
+
+                    )
+
+
+
+            except Exception as e:
+
+
+                print(
+
+                    "GEMINI ERROR:",
+
+                    e
+
+                )
+
+
+
         if not answer:
 
 
             answer = (
 
                 "검색 결과가 없습니다."
-
-            )
-
-
-
-        # -------------------------------
-        # Gemini AI 의견 추가
-        # -------------------------------
-
-        try:
-
-
-            market_data = json.dumps(
-
-                products[:30],
-
-                ensure_ascii=False
-
-            )
-
-
-            ai_comment = ask_gemini(
-
-                question,
-
-                market_data
-
-            )
-
-
-            answer += (
-
-
-                "\n\n"
-
-                "🤖 AI 전문가 의견\n\n"
-
-                +
-
-                ai_comment
-
-
-            )
-
-
-        except Exception as e:
-
-
-            print(
-
-                "GEMINI ERROR:",
-
-                e
 
             )
 

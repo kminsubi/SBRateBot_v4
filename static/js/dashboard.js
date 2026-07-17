@@ -1192,8 +1192,10 @@ async function searchAI(){
         return;
 
 
+
     const question =
     input.value.trim();
+
 
 
     if(!question){
@@ -1208,8 +1210,10 @@ async function searchAI(){
     }
 
 
+
     answer.innerText =
     "검색중입니다...";
+
 
 
     try{
@@ -1240,57 +1244,26 @@ async function searchAI(){
         );
 
 
+
         const data =
-await response.json();
+        await response.json();
 
 
-const result =
-data.answer ||
-"검색 결과가 없습니다.";
+
+        const result =
+        data.answer ||
+        "검색 결과가 없습니다.";
 
 
-// AI 검색 결과 출력
-answer.innerText =
-result;
 
+        // -------------------------------
+        // AI 검색 결과 출력
+        // 검색 영역만 변경
+        // -------------------------------
 
-// 시장 분석 관련 검색이면 AI 요약에도 추가
-if(
-    question.includes("시장")
-    ||
-    question.includes("분석")
-    ||
-    question.includes("동향")
-    ||
-    question.includes("전망")
-    ||
-    question.includes("상황")
-){
+        answer.innerText =
+        result;
 
-    const box =
-    document.querySelector(
-        "#ai-summary"
-    );
-
-
-    if(box){
-
-        box.innerHTML =
-        `
-
-        <ul>
-
-        <li>
-        ${result.replace(/\n/g,"<br>")}
-        </li>
-
-        </ul>
-
-        `;
-
-    }
-
-}
 
 
     }
@@ -1301,6 +1274,7 @@ if(
             "AI SEARCH ERROR",
             error
         );
+
 
 
         answer.innerText =

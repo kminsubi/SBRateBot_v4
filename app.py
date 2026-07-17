@@ -2731,7 +2731,9 @@ def ai_search():
                     "낮은",
                     "밀리는",
                     "뒤처지는",
-                    "열위"
+                    "열위",
+                    "불리한",
+                    "떨어지는"
                 ]
             )
         ):
@@ -2791,7 +2793,10 @@ def ai_search():
                         "우위",
                         "앞서는",
                         "경쟁력",
-                        "나은"
+                        "나은",
+                        "더 높은",
+                        "앞선",
+                        "유리한"
 
                     ]
 
@@ -2934,13 +2939,16 @@ def ai_search():
                             )
 
 
+
                             if gap > 0:
 
 
                                 gap_text = (
 
                                     f'<span class="rate-change increase">'
+
                                     f'+{gap:.2f}%p'
+
                                     f'</span>'
 
                                 )
@@ -2952,7 +2960,9 @@ def ai_search():
                                 gap_text = (
 
                                     f'<span class="rate-change decrease">'
+
                                     f'▲{abs(gap):.2f}%p'
+
                                     f'</span>'
 
                                 )

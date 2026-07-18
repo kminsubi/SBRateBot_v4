@@ -2634,7 +2634,7 @@ def ai_search():
 
 
 
-        # -------------------------------
+                # -------------------------------
         # 최고 금리
         # -------------------------------
 
@@ -2669,6 +2669,15 @@ def ai_search():
             )
 
 
+            rank = get_market_bank_rank(
+
+                products,
+
+                item["bank"]
+
+            )
+
+
             answer = (
 
                 f"📈 {search_period} 최고금리\n\n"
@@ -2677,7 +2686,9 @@ def ai_search():
 
                 f"상품 : {item['product']}\n"
 
-                f"금리 : {item['rate']:.2f}%"
+                f"최고금리 : {item['rate']:.2f}%\n"
+
+                f"시장순위 : {rank['rank']}위 / {rank['total']}개사"
 
             )
 
@@ -2719,6 +2730,15 @@ def ai_search():
             )
 
 
+            rank = get_market_bank_rank(
+
+                products,
+
+                item["bank"]
+
+            )
+
+
             answer = (
 
                 f"📉 {search_period} 최저금리\n\n"
@@ -2727,7 +2747,9 @@ def ai_search():
 
                 f"상품 : {item['product']}\n"
 
-                f"금리 : {item['rate']:.2f}%"
+                f"최저금리 : {item['rate']:.2f}%\n"
+
+                f"시장순위 : {rank['rank']}위 / {rank['total']}개사"
 
             )
 
@@ -3564,6 +3586,8 @@ def ai_search():
                         f"{target_bank} 기준금리 : "
 
                         f"{target_rate:.2f}%\n\n"
+
+                        f"시장순위 : {rank['rank']}위 / {rank['total']}개사\n\n"
 
                     )
 

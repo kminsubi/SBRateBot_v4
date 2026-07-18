@@ -2354,6 +2354,7 @@ def ai_search():
 
             )
 
+
             highest_gap = (
 
                 highest["rate"]
@@ -2376,11 +2377,16 @@ def ai_search():
             )
 
 
+
             if highest_gap >= 0:
 
                 highest_gap_text = (
 
-                    f"+{highest_gap:.2f}%p"
+                    f'<span class="rate-change increase">'
+
+                    f'+{highest_gap:.2f}%p'
+
+                    f'</span>'
 
                 )
 
@@ -2388,16 +2394,25 @@ def ai_search():
 
                 highest_gap_text = (
 
-                    f"▲{abs(highest_gap):.2f}%p"
+                    f'<span class="rate-change decrease">'
+
+                    f'▲{abs(highest_gap):.2f}%p'
+
+                    f'</span>'
 
                 )
+
 
 
             if lowest_gap < 0:
 
                 lowest_gap_text = (
 
-                    f"▲{abs(lowest_gap):.2f}%p"
+                    f'<span class="rate-change decrease">'
+
+                    f'▲{abs(lowest_gap):.2f}%p'
+
+                    f'</span>'
 
                 )
 
@@ -2405,9 +2420,15 @@ def ai_search():
 
                 lowest_gap_text = (
 
-                    f"+{lowest_gap:.2f}%p"
+                    f'<span class="rate-change increase">'
+
+                    f'+{lowest_gap:.2f}%p'
+
+                    f'</span>'
 
                 )
+
+
 
             answer = (
 
@@ -2427,15 +2448,15 @@ def ai_search():
 
                 f"최저상품 : {lowest['bank']} / {lowest['product']}\n\n"
 
-                f"최고금리-평균금리 : <span class='rate-change increase'>{highest_gap_text}</span><br>"
+                f"최고금리-평균금리 : {highest_gap_text}<br>"
 
-                f"최저금리-평균금리 : <span class='rate-change decrease'>{lowest_gap_text}</span>"
+                f"최저금리-평균금리 : {lowest_gap_text}"
 
             )
 
 
 
-                # -------------------------------
+        # -------------------------------
         # 은행 시장현황 검색
         # -------------------------------
 

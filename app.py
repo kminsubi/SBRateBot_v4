@@ -3069,7 +3069,8 @@ def ai_search():
         # 예)
         # 우리금융 경쟁력 어때
         # 우리금융저축은행 경쟁력
-        # 우리금융저축은행 어때
+        # 우리금융보다 높은 곳
+        # 우리금융보다 낮은 곳
         # -------------------------------
 
         elif (
@@ -3096,17 +3097,7 @@ def ai_search():
 
                     "위치",
 
-                    "비교"
-
-                ]
-
-            )
-
-            and not any(
-
-                x in question
-
-                for x in [
+                    "비교",
 
                     "보다",
 
@@ -3114,9 +3105,9 @@ def ai_search():
 
                     "낮은",
 
-                    "이상",
+                    "상위",
 
-                    "이하"
+                    "하위"
 
                 ]
 
@@ -3261,6 +3252,38 @@ def ai_search():
 
 
 
+                if gap > 0:
+
+                    gap_text = (
+
+                        f'<span class="rate-change increase">'
+
+                        f'+{gap:.2f}%p'
+
+                        f'</span>'
+
+                    )
+
+
+                elif gap < 0:
+
+                    gap_text = (
+
+                        f'<span class="rate-change decrease">'
+
+                        f'▲{abs(gap):.2f}%p'
+
+                        f'</span>'
+
+                    )
+
+
+                else:
+
+                    gap_text = "0.00%p"
+
+
+
                 answer = (
 
                     "🏦 우리금융저축은행 경쟁력 분석\n\n"
@@ -3269,7 +3292,7 @@ def ai_search():
 
                     f"시장순위 : {rank['rank']}위 / {rank['total']}개사\n"
 
-                    f"평균 대비 : {gap:+.2f}%p\n\n"
+                    f"평균 대비 : {gap_text}\n\n"
 
                     f"우리보다 높은 금리 : {len(higher)}개\n"
 
@@ -3282,7 +3305,7 @@ def ai_search():
                 if higher:
 
 
-                    answer += "\n📈 상위 경쟁사\n\n"
+                    answer += "\n📈 우리보다 높은 경쟁사 TOP5\n\n"
 
 
                     for item in higher[:5]:
@@ -3301,13 +3324,24 @@ def ai_search():
                         )
 
 
+                        diff_text = (
+
+                            f'<span class="rate-change increase">'
+
+                            f'+{diff:.2f}%p'
+
+                            f'</span>'
+
+                        )
+
+
                         answer += (
 
                             f"{item['bank']} "
 
                             f"{item['rate']:.2f}% "
 
-                            f"(+{diff:.2f}%p)\n"
+                            f"{diff_text}\n"
 
                         )
 
@@ -3316,7 +3350,7 @@ def ai_search():
                 if lower:
 
 
-                    answer += "\n📉 하위 경쟁사\n\n"
+                    answer += "\n📉 우리보다 낮은 경쟁사 TOP5\n\n"
 
 
                     for item in lower[:5]:
@@ -3335,17 +3369,28 @@ def ai_search():
                         )
 
 
+                        diff_text = (
+
+                            f'<span class="rate-change decrease">'
+
+                            f'▲{diff:.2f}%p'
+
+                            f'</span>'
+
+                        )
+
+
                         answer += (
 
                             f"{item['bank']} "
 
                             f"{item['rate']:.2f}% "
 
-                            f"(-{diff:.2f}%p)\n"
+                            f"{diff_text}\n"
 
                         )
 
-                # -------------------------------
+        # -------------------------------
         # 특정 은행 대비 금리 비교 검색 V4.2
         #
         # 예)

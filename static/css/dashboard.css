@@ -981,3 +981,22 @@ body {
     font-weight:bold;
 
 }
+
+/* ===========================
+   AI / Product Scroll
+=========================== */
+
+
+.answer-scroll{
+
+    height:120px;
+
+    overflow-y:auto;
+
+    overflow-x:hidden;
+
+    white-space:pre-wrap;
+
+    word-break:break-word;
+
+}

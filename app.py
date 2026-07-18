@@ -208,7 +208,47 @@ def normalize(text):
     return text.lower()
 
 
+# -------------------------------
+# 저축은행명 별칭 매핑
+# -------------------------------
 
+BANK_ALIAS = {
+
+    "우리금융": "우리금융저축은행",
+    "우리": "우리금융저축은행",
+    "우리저축": "우리금융저축은행",
+    "우리저축은행": "우리금융저축은행",
+
+    "신한": "신한저축은행",
+    "신한저축": "신한저축은행",
+    "신한저축은행": "신한저축은행",
+
+    "하나": "하나저축은행",
+    "하나저축": "하나저축은행",
+    "하나저축은행": "하나저축은행",
+
+    "KB": "KB저축은행",
+    "kb": "KB저축은행",
+    "국민": "KB저축은행",
+    "KB저축": "KB저축은행",
+    "KB저축은행": "KB저축은행"
+
+}
+
+
+def resolve_bank_name(question):
+
+    q = normalize(question)
+
+
+    for keyword, bank_name in BANK_ALIAS.items():
+
+        if normalize(keyword) in q:
+
+            return bank_name
+
+
+    return None
 
 
 # -------------------------------
@@ -630,11 +670,142 @@ def get_market_bank_rank(
 
     }
 
+    
+
 # -------------------------------
-# AI 검색 V4.1 분석 엔진
-# Python Intent 처리 함수
+# 은행 시장 현황 분석
 # -------------------------------
 
+def analyze_bank_status(
+    products,
+    bank_name
+):
+
+
+    bank_products = find_bank_products(
+
+        products,
+
+        bank_name
+
+    )
+
+
+    if not bank_products:
+
+        return None
+
+
+
+    bank_products = [
+
+        x
+
+        for x in bank_products
+
+        if x["rate"] > 0
+
+    ]
+
+
+
+    if not bank_products:
+
+        return None
+
+
+
+    bank_products.sort(
+
+        key=lambda x:
+
+            x["rate"],
+
+        reverse=True
+
+    )
+
+
+
+    best = bank_products[0]
+
+
+
+    market_rates = [
+
+        x["rate"]
+
+        for x in products
+
+        if x["rate"] > 0
+
+    ]
+
+
+
+    avg_rate = sum(
+
+        market_rates
+
+    ) / len(market_rates)
+
+
+
+    rank = get_market_bank_rank(
+
+        products,
+
+        bank_name
+
+    )
+
+
+
+    return {
+
+
+        "bank":
+
+            bank_name,
+
+
+        "product":
+
+            best.get(
+
+                "product",
+
+                "-"
+
+            ),
+
+
+        "rate":
+
+            best["rate"],
+
+
+        "rank":
+
+            rank["rank"],
+
+
+        "total":
+
+            rank["total"],
+
+
+        "avg_gap":
+
+            round(
+
+                best["rate"] - avg_rate,
+
+                2
+
+            )
+
+    }
 
 def sort_rate_products(products, reverse=True):
 
@@ -962,6 +1133,7 @@ def api_kpi():
         if x["rate"] > 0
 
     ]
+    
 
 
 
@@ -1068,6 +1240,8 @@ def api_woori():
         if x["rate"] > 0
 
     ]
+
+    
 
 
     if not products:
@@ -1964,7 +2138,17 @@ def ai_search():
 
         )
 
+                # -------------------------------
+        # 은행명 자동 인식
+        # -------------------------------
 
+        target_bank = resolve_bank_name(question)
+
+
+        print(
+            "TARGET BANK:",
+            target_bank
+        )
 
         # -------------------------------
         # 검색 기간 선택
@@ -2018,9 +2202,115 @@ def ai_search():
 
         ]
 
+                # -------------------------------
+        # 은행 시장 분석
+        # -------------------------------
+
+        bank_analysis = None
+
+
+        if target_bank:
+
+            bank_analysis = analyze_bank_status(
+
+                products,
+
+                target_bank
+
+            )
+
 
 
         answer = ""
+
+
+
+                # -------------------------------
+        # 은행 시장현황 검색
+        # -------------------------------
+
+        if (
+
+            bank_analysis
+
+            and
+
+            any(
+
+                x in question
+
+                for x in [
+
+                    "시장현황",
+
+                    "현황",
+
+                    "상황",
+
+                    "시장",
+
+                    "순위",
+
+                    "경쟁력"
+
+                ]
+
+            )
+
+        ):
+
+
+            gap = bank_analysis["avg_gap"]
+
+
+
+            if gap > 0:
+
+                gap_text = (
+
+                    f'<span class="rate-change increase">'
+
+                    f'+{gap:.2f}%p'
+
+                    f'</span>'
+
+                )
+
+
+            elif gap < 0:
+
+                gap_text = (
+
+                    f'<span class="rate-change decrease">'
+
+                    f'▲{abs(gap):.2f}%p'
+
+                    f'</span>'
+
+                )
+
+
+            else:
+
+                gap_text = "0.00%p"
+
+
+
+            answer = (
+
+                f"■ {bank_analysis['bank']} 시장현황\n\n"
+
+                f"기준기간 : {search_period}\n\n"
+
+                f"대표상품 : {bank_analysis['product']}\n"
+
+                f"현재금리 : {bank_analysis['rate']:.2f}%\n\n"
+
+                f"시장순위 : {bank_analysis['rank']}위 / {bank_analysis['total']}개\n"
+
+                f"평균금리 대비 : {gap_text}"
+
+            )
 
 
 
@@ -2029,7 +2319,7 @@ def ai_search():
         # -------------------------------
 
 
-        if any(
+        elif any(
 
             x in question
 
@@ -2073,6 +2363,7 @@ def ai_search():
 
 
 
+        
         # -------------------------------
         # 최저 금리
         # -------------------------------

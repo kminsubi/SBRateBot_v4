@@ -2435,7 +2435,7 @@ def ai_search():
 
 
 
-        # -------------------------------
+                # -------------------------------
         # 은행 시장현황 검색
         # -------------------------------
 
@@ -2460,8 +2460,6 @@ def ai_search():
                     "시장",
 
                     "순위",
-
-                    "경쟁력"
 
                 ]
 
@@ -2519,6 +2517,118 @@ def ai_search():
                 f"시장순위 : {bank_analysis['rank']}위 / {bank_analysis['total']}개\n"
 
                 f"평균금리 대비 : {gap_text}"
+
+            )
+
+
+
+        # -------------------------------
+        # 은행 경쟁력 분석
+        # -------------------------------
+
+        elif (
+
+            bank_analysis
+
+            and
+
+            any(
+
+                x in question
+
+                for x in [
+
+                    "경쟁력",
+
+                    "평가",
+
+                    "어때",
+
+                    "괜찮아",
+
+                    "위치"
+
+                ]
+
+            )
+
+        ):
+
+
+            gap = bank_analysis["avg_gap"]
+
+
+
+            if gap > 0:
+
+                gap_text = (
+
+                    f'<span class="rate-change increase">'
+
+                    f'+{gap:.2f}%p'
+
+                    f'</span>'
+
+                )
+
+
+                evaluation = (
+
+                    "시장 평균 대비 높은 금리로 "
+
+                    "금리 경쟁력이 양호합니다."
+
+                )
+
+
+            elif gap < 0:
+
+                gap_text = (
+
+                    f'<span class="rate-change decrease">'
+
+                    f'▲{abs(gap):.2f}%p'
+
+                    f'</span>'
+
+                )
+
+
+                evaluation = (
+
+                    "시장 평균 대비 낮은 금리로 "
+
+                    "금리 경쟁력 개선이 필요합니다."
+
+                )
+
+
+            else:
+
+                gap_text = "0.00%p"
+
+
+                evaluation = (
+
+                    "시장 평균 수준입니다."
+
+                )
+
+
+
+            answer = (
+
+                f"■ {bank_analysis['bank']} 경쟁력 분석\n\n"
+
+                f"기준기간 : {search_period}\n\n"
+
+                f"현재금리 : {bank_analysis['rate']:.2f}%\n\n"
+
+                f"시장순위 : {bank_analysis['rank']}위 / {bank_analysis['total']}개\n\n"
+
+                f"평균금리 대비 : {gap_text}\n\n"
+
+                f"평가 : {evaluation}"
 
             )
 

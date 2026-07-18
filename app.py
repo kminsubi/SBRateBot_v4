@@ -1928,6 +1928,61 @@ def api_ai():
 
         lowest = rate_products[-1]
 
+        highest_gap = (
+
+            highest["rate"]
+
+            -
+
+            avg_rate
+
+        )
+
+
+        lowest_gap = (
+
+            lowest["rate"]
+
+            -
+
+            avg_rate
+
+        )
+
+
+        if highest_gap >= 0:
+
+            highest_gap_text = (
+
+                f"+{highest_gap:.2f}%p"
+
+            )
+
+        else:
+
+            highest_gap_text = (
+
+                f"▲{abs(highest_gap):.2f}%p"
+
+            )
+
+
+        if lowest_gap < 0:
+
+            lowest_gap_text = (
+
+                f"▲{abs(lowest_gap):.2f}%p"
+
+            )
+
+        else:
+
+            lowest_gap_text = (
+
+                f"+{lowest_gap:.2f}%p"
+
+            )
+
 
 
         spread = (
@@ -1939,7 +1994,6 @@ def api_ai():
             lowest["rate"]
 
         )
-
 
 
 
@@ -2223,9 +2277,165 @@ def ai_search():
 
         answer = ""
 
-
-
                 # -------------------------------
+        # 전체 시장현황 검색
+        # -------------------------------
+
+        if (
+
+            not bank_analysis
+
+            and
+
+            any(
+
+                x in question
+
+                for x in [
+
+                    "시장현황",
+
+                    "시장 현황",
+
+                    "시장상황",
+
+                    "금리 상황",
+
+                    "금리현황",
+
+                    "금리 현황"
+
+                ]
+
+            )
+
+        ):
+
+
+            highest = max(
+
+                products,
+
+                key=lambda x:
+
+                    x["rate"]
+
+            )
+
+
+            lowest = min(
+
+                products,
+
+                key=lambda x:
+
+                    x["rate"]
+
+            )
+
+
+            avg_rate = sum(
+
+                x["rate"]
+
+                for x in products
+
+            ) / len(products)
+
+
+
+            spread = (
+
+                highest["rate"]
+
+                -
+
+                lowest["rate"]
+
+            )
+
+            highest_gap = (
+
+                highest["rate"]
+
+                -
+
+                avg_rate
+
+            )
+
+
+            lowest_gap = (
+
+                lowest["rate"]
+
+                -
+
+                avg_rate
+
+            )
+
+
+            if highest_gap >= 0:
+
+                highest_gap_text = (
+
+                    f"+{highest_gap:.2f}%p"
+
+                )
+
+            else:
+
+                highest_gap_text = (
+
+                    f"▲{abs(highest_gap):.2f}%p"
+
+                )
+
+
+            if lowest_gap < 0:
+
+                lowest_gap_text = (
+
+                    f"▲{abs(lowest_gap):.2f}%p"
+
+                )
+
+            else:
+
+                lowest_gap_text = (
+
+                    f"+{lowest_gap:.2f}%p"
+
+                )
+
+            answer = (
+
+                f"■ 정기예금 시장현황\n\n"
+
+                f"기준기간 : {search_period}\n\n"
+
+                f"상품 수 : {len(products)}개\n\n"
+
+                f"최고금리 : {highest['rate']:.2f}%\n"
+
+                f"최고상품 : {highest['bank']} / {highest['product']}\n\n"
+
+                f"평균금리 : {avg_rate:.2f}%\n\n"
+
+                f"최저금리 : {lowest['rate']:.2f}%\n"
+
+                f"최저상품 : {lowest['bank']} / {lowest['product']}\n\n"
+
+                f"최고금리-평균금리 : <span class='rate-change increase'>{highest_gap_text}</span><br>"
+
+                f"최저금리-평균금리 : <span class='rate-change decrease'>{lowest_gap_text}</span>"
+
+            )
+
+
+
+        # -------------------------------
         # 은행 시장현황 검색
         # -------------------------------
 

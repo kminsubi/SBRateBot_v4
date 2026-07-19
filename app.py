@@ -228,11 +228,17 @@ def detect_intent(question):
 
         x in q
 
-        for x in [
+         for x in [
 
             "보다높",
 
+            "높은곳",
+
+            "높은",
+
             "보다좋",
+
+            "좋은곳",
 
             "이기는",
 
@@ -242,7 +248,11 @@ def detect_intent(question):
 
             "경쟁력있는",
 
-            "나은"
+            "나은",
+
+            "상회",
+
+            "초과"
 
         ]
 
@@ -266,11 +276,17 @@ def detect_intent(question):
 
             "낮은곳",
 
+            "낮은",
+
+            "하회",
+
             "밀리는",
 
             "뒤처지는",
 
-            "열위"
+            "열위",
+
+            "떨어지는"
 
         ]
 
@@ -1536,69 +1552,258 @@ def filter_under_rate(products, rate):
 
 
 
+# -------------------------------
+# 숫자 추출
+# 예)
+# TOP5
+# 0.5%
+# 3%
+# -------------------------------
+
+def extract_number(text):
+
+
+    import re
+
+
+    numbers = re.findall(
+
+        r"\d+\.?\d*",
+
+        str(text)
+
+    )
+
+
+    if not numbers:
+
+        return None
+
+
+    try:
+
+        return float(numbers[0])
+
+
+    except:
+
+        return None
+
+
+
+# -------------------------------
+# 금리 차이 조건 추출 V4.5.1
+# 예)
+# 대원보다 0.5% 높은곳
+# 우리보다 1% 낮은곳
+# -------------------------------
+
+def extract_rate_condition(question):
+
+
+    q = normalize(question)
+
+
+    value = extract_number(question)
+
+
+    if value is None:
+
+        return None
+
+
+
+    if any(
+
+        x in q
+
+        for x in [
+
+            "높",
+
+            "상위",
+
+            "우위",
+
+            "앞서"
+
+        ]
+
+    ):
+
+
+        return {
+
+            "type":
+
+                "HIGHER",
+
+            "value":
+
+                value
+
+        }
+
+
+
+    if any(
+
+        x in q
+
+        for x in [
+
+            "낮",
+
+            "하위",
+
+            "열위",
+
+            "밀리"
+
+        ]
+
+    ):
+
+
+        return {
+
+            "type":
+
+                "LOWER",
+
+            "value":
+
+                value
+
+        }
+
+
+
+    return None
+
+
+
+
+
+# -------------------------------
+# 상품 검색
+# -------------------------------
+
 def search_product_keyword(products, keyword):
+
 
     keyword = normalize(keyword)
 
+
     result = []
+
 
     for item in products:
 
+
         if (
+
             keyword in normalize(item["bank"])
+
             or
+
             keyword in normalize(item["product"])
+
         ):
 
+
             result.append(item)
+
 
 
     return result
 
 
 
+
+
+# -------------------------------
+# 은행 2개 비교
+# -------------------------------
+
 def compare_two_banks(products, bank1, bank2):
 
+
     bank1_items = find_bank_products(
+
         products,
+
         bank1
+
     )
 
+
     bank2_items = find_bank_products(
+
         products,
+
         bank2
+
     )
+
 
 
     if not bank1_items or not bank2_items:
 
+
         return None
 
 
+
     bank1_best = max(
+
         bank1_items,
-        key=lambda x:x["rate"]
+
+        key=lambda x:
+
+            x["rate"]
+
     )
+
 
 
     bank2_best = max(
+
         bank2_items,
-        key=lambda x:x["rate"]
+
+        key=lambda x:
+
+            x["rate"]
+
     )
+
 
 
     return {
 
-        "bank1": bank1_best,
 
-        "bank2": bank2_best,
+        "bank1":
+
+            bank1_best,
+
+
+        "bank2":
+
+            bank2_best,
+
 
         "difference":
+
             round(
+
                 bank1_best["rate"]
+
                 -
+
                 bank2_best["rate"],
+
                 2
+
             )
 
     }
@@ -2934,7 +3139,7 @@ def ai_search():
 
         ]
 
-        # -------------------------------
+                # -------------------------------
         # 은행 시장 분석
         # -------------------------------
 
@@ -2953,13 +3158,343 @@ def ai_search():
 
 
 
-        answer = ""
-
                 # -------------------------------
+        # 금리 차이 조건 검색 V4.5.2
+        #
+        # 예)
+        # 대원보다 0.5% 높은곳
+        # 우리금융보다 1% 낮은곳
+        #
+        # 기준:
+        # - 은행별 최고금리 기준
+        # - 전체 저축은행 비교
+        #
+        # 증감 표시:
+        # 증가 : 파란색 + 표시
+        # 감소 : 빨간색 ▲ 표시
+        # -------------------------------
+
+
+        rate_condition = extract_rate_condition(
+
+            question
+
+        )
+
+
+        condition_answer = None
+
+
+
+        if (
+
+            target_bank
+
+            and
+
+            rate_condition
+
+        ):
+
+
+            target_products = find_bank_products(
+
+                products,
+
+                target_bank
+
+            )
+
+
+            if target_products:
+
+
+                base_rate = max(
+
+                    x["rate"]
+
+                    for x in target_products
+
+                )
+
+
+                bank_best_rates = get_bank_best_rates(
+
+                    products
+
+                )
+
+
+
+                if rate_condition["type"] == "HIGHER":
+
+
+                    target_rate = (
+
+                        base_rate
+
+                        +
+
+                        rate_condition["value"]
+
+                    )
+
+
+                    candidates = [
+
+                        x
+
+                        for x in bank_best_rates
+
+                        if (
+
+                            x["rate"]
+
+                            >=
+
+                            target_rate
+
+                        )
+
+                        and
+
+                        normalize(x["bank"])
+
+                        !=
+
+                        normalize(target_bank)
+
+                    ]
+
+
+                    candidates.sort(
+
+                        key=lambda x:
+
+                            x["rate"],
+
+                        reverse=True
+
+                    )
+
+
+                    condition_answer = (
+
+                        f"📈 {target_bank} 대비 "
+
+                        f"{rate_condition['value']:.2f}%p 이상 높은 은행\n\n"
+
+                        f"기준금리 : {base_rate:.2f}%\n"
+
+                        f"조건금리 : {target_rate:.2f}% 이상\n\n"
+
+                    )
+
+
+                    if candidates:
+
+
+                        for idx,item in enumerate(
+
+                            candidates[:10],
+
+                            start=1
+
+                        ):
+
+
+                            diff = round(
+
+                                item["rate"]
+
+                                -
+
+                                base_rate,
+
+                                2
+
+                            )
+
+
+                            diff_text = (
+
+                                f'<span class="rate-change increase">'
+
+                                f'+{diff:.2f}%p'
+
+                                f'</span>'
+
+                            )
+
+
+                            condition_answer += (
+
+                                f"{idx}. "
+
+                                f"{item['bank']} "
+
+                                f"{item['rate']:.2f}% "
+
+                                f"({diff_text})\n"
+
+                            )
+
+
+                    else:
+
+
+                        condition_answer += (
+
+                            "조건을 만족하는 은행이 없습니다."
+
+                        )
+
+
+
+
+                elif rate_condition["type"] == "LOWER":
+
+
+                    target_rate = (
+
+                        base_rate
+
+                        -
+
+                        rate_condition["value"]
+
+                    )
+
+
+                    candidates = [
+
+                        x
+
+                        for x in bank_best_rates
+
+                        if (
+
+                            x["rate"]
+
+                            <=
+
+                            target_rate
+
+                        )
+
+                        and
+
+                        normalize(x["bank"])
+
+                        !=
+
+                        normalize(target_bank)
+
+                    ]
+
+
+                    candidates.sort(
+
+                        key=lambda x:
+
+                            x["rate"],
+
+                        reverse=True
+
+                    )
+
+
+                    condition_answer = (
+
+                        f"📉 {target_bank} 대비 "
+
+                        f"{rate_condition['value']:.2f}%p 이상 낮은 은행\n\n"
+
+                        f"기준금리 : {base_rate:.2f}%\n"
+
+                        f"조건금리 : {target_rate:.2f}% 이하\n\n"
+
+                    )
+
+
+                    if candidates:
+
+
+                        for idx,item in enumerate(
+
+                            candidates[:10],
+
+                            start=1
+
+                        ):
+
+
+                            diff = round(
+
+                                base_rate
+
+                                -
+
+                                item["rate"],
+
+                                2
+
+                            )
+
+
+                            diff_text = (
+
+                                f'<span class="rate-change decrease">'
+
+                                f'▲{diff:.2f}%p'
+
+                                f'</span>'
+
+                            )
+
+
+                            condition_answer += (
+
+                                f"{idx}. "
+
+                                f"{item['bank']} "
+
+                                f"{item['rate']:.2f}% "
+
+                                f"({diff_text})\n"
+
+                            )
+
+
+                    else:
+
+
+                        condition_answer += (
+
+                            "조건을 만족하는 은행이 없습니다."
+
+                        )
+
+
+        # -------------------------------
+        # 금리 차이 조건 검색 결과 우선 적용 V4.5.1
+        # -------------------------------
+
+        if condition_answer:
+
+            answer = condition_answer
+
+
+
+        # -------------------------------
         # 우리금융 경쟁력 우선 처리 V4.5
         # -------------------------------
 
-        if (
+        elif (
+
+            not condition_answer
+
+            and
 
             intent == "COMPETITIVENESS"
 
@@ -3342,6 +3877,10 @@ def ai_search():
 
         elif (
 
+            not condition_answer
+
+            and
+            
             bank_analysis
 
             and
@@ -4010,7 +4549,7 @@ def ai_search():
 
 
 
-                # -------------------------------
+        # -------------------------------
         # 우리금융 자연어 경쟁력 분석
         # 예)
         # 우리금융 경쟁력 어때
@@ -4020,6 +4559,10 @@ def ai_search():
         # -------------------------------
 
         elif (
+
+            not condition_answer
+
+            and
 
             (
                 "우리금융"
@@ -4412,7 +4955,7 @@ def ai_search():
 
                         )
 
-                # -------------------------------
+        # -------------------------------
         # 특정 은행 대비 금리 비교 검색 V4.5
         #
         # Intent 기반 비교 처리
@@ -4431,6 +4974,10 @@ def ai_search():
 
 
         elif (
+
+            not condition_answer
+
+            and
 
             intent in [
 
@@ -4847,9 +5394,17 @@ def ai_search():
 
 
 
-                    # -------------------------------
+                                        # -------------------------------
                     # TOP 10 출력
+                    # 증감 표시 색상 통일 V4.5.2
+                    #
+                    # AI 검색 결과 표시 기준
+                    # 증가 : 파란색 + 표시
+                    # 감소 : 빨간색 ▲ 표시
+                    #
+                    # 대시보드 / AI 응답 표시 규칙 통일
                     # -------------------------------
+
 
                     if result:
 
@@ -4891,7 +5446,7 @@ def ai_search():
                                 )
 
 
-                            else:
+                            elif diff < 0:
 
 
                                 diff_text = (
@@ -4905,6 +5460,16 @@ def ai_search():
                                 )
 
 
+                            else:
+
+
+                                diff_text = (
+
+                                    "0.00%p"
+
+                                )
+
+
 
                             answer += (
 
@@ -4914,9 +5479,10 @@ def ai_search():
 
                                 f"{item['rate']:.2f}% "
 
-                                f"({diff_text})\n"
+                                f"{diff_text}\n"
 
                             )
+
 
 
                     else:
@@ -4927,28 +5493,6 @@ def ai_search():
                             "조건에 맞는 은행이 없습니다."
 
                         )
-
-
-
-                else:
-
-
-                    answer = (
-
-                        f"{target_bank} 데이터를 찾을 수 없습니다."
-
-                    )
-
-
-
-            else:
-
-
-                answer = (
-
-                    "비교할 은행을 찾을 수 없습니다."
-
-                )
 
         # -------------------------------
         # 우리금융 시장 순위

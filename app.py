@@ -308,7 +308,7 @@ def resolve_bank_name(question):
     )
 
 
-    # -------------------------------
+        # -------------------------------
     # 기존 별칭 우선 검색
     # -------------------------------
 
@@ -3952,39 +3952,92 @@ def ai_search():
 
                         )
 
-        # -------------------------------
-        # 특정 은행 대비 금리 비교 검색 V4.3
+                # -------------------------------
+        # 특정 은행 대비 금리 비교 검색 V4.4
         #
         # 예)
         # 대원보다 높은 곳
         # OK보다 높은 곳
         # 우리금융보다 경쟁력 있는 곳
-        # 우리금융보다 낮은 곳
+        # 대원 대비 좋은 곳
+        # 페퍼를 이기는 곳
         #
         # 기준:
         # - 은행별 최고금리 기준 비교
+        # - 전체 저축은행 대상
         # - 기존 대시보드 기능 유지
         # -------------------------------
 
         elif (
-            "보다" in question
-            and any(
+
+            any(
+
                 x in question
+
                 for x in [
-                    "높은",
-                    "좋은",
-                    "우위",
-                    "앞서는",
-                    "경쟁력",
-                    "나은",
-                    "낮은",
-                    "밀리는",
-                    "뒤처지는",
-                    "열위",
-                    "불리한",
-                    "떨어지는"
+
+                    "보다",
+
+                    "대비",
+
+                    "상대",
+
+                    "이기는",
+
+                    "지는"
+
                 ]
+
             )
+
+            and
+
+            any(
+
+                x in question
+
+                for x in [
+
+                    "높은",
+
+                    "좋은",
+
+                    "우위",
+
+                    "앞서는",
+
+                    "경쟁력",
+
+                    "나은",
+
+                    "낮은",
+
+                    "밀리는",
+
+                    "뒤처지는",
+
+                    "열위",
+
+                    "불리한",
+
+                    "떨어지는",
+
+                    "이기는",
+
+                    "우세",
+
+                    "우세한",
+
+                    "상위",
+
+                    "앞선",
+
+                    "더 높은"
+
+                ]
+
+            )
+
         ):
 
 
@@ -3993,7 +4046,9 @@ def ai_search():
             # -------------------------------
 
             target_bank = find_target_bank(
+
                 question
+
             )
 
 
@@ -4005,8 +4060,11 @@ def ai_search():
                 # -------------------------------
 
                 target_items = find_bank_products(
+
                     products,
+
                     target_bank
+
                 )
 
 
@@ -4014,26 +4072,30 @@ def ai_search():
 
 
                     target_rate = max(
+
                         x["rate"]
+
                         for x in target_items
+
                     )
 
 
                     rank = get_market_bank_rank(
+
                         products,
+
                         target_bank
+
                     )
 
 
-                                        # -------------------------------
+                    # -------------------------------
                     # 시장 평균금리 계산
                     #
                     # 기준:
-                    # - 정기예금 시장현황과 동일
-                    # - 12개월(top_12m) 기준
-                    # - 0% 금리 제외
+                    # - 12개월 기준
+                    # - 0% 제외
                     # -------------------------------
-
 
                     valid_rates = []
 
@@ -4044,11 +4106,17 @@ def ai_search():
                         rate = float(
 
                             item.get(
+
                                 "top_12m"
+
                             )
+
                             or item.get(
+
                                 "rate"
+
                             )
+
                             or 0
 
                         )
@@ -4057,7 +4125,9 @@ def ai_search():
                         if rate > 0:
 
                             valid_rates.append(
+
                                 rate
+
                             )
 
 
@@ -4084,31 +4154,36 @@ def ai_search():
 
 
                     # -------------------------------
-                    # 은행별 최고금리 리스트 생성용
-                    # 비교 대상은 은행별 최고금리 유지
+                    # 은행별 최고금리 생성
                     # -------------------------------
 
-
                     bank_best_rates = {}
-
 
 
                     for item in products:
 
 
                         bank = item.get(
+
                             "bank"
+
                         )
 
 
                         rate = float(
 
                             item.get(
+
                                 "top_12m"
+
                             )
+
                             or item.get(
+
                                 "rate"
+
                             )
+
                             or 0
 
                         )
@@ -4117,7 +4192,6 @@ def ai_search():
                         if not bank:
 
                             continue
-
 
 
                         if rate <= 0:
@@ -4140,77 +4214,121 @@ def ai_search():
                             bank_best_rates[bank] = rate
 
 
+
                     gap = round(
-                        target_rate - market_average,
+
+                        target_rate
+
+                        -
+
+                        market_average,
+
                         2
+
                     )
 
 
 
                     if gap > 0:
 
+
                         gap_text = (
+
                             f'<span class="rate-change increase">'
+
                             f'+{gap:.2f}%p'
+
                             f'</span>'
+
                         )
+
 
                     elif gap < 0:
 
+
                         gap_text = (
+
                             f'<span class="rate-change decrease">'
+
                             f'▲{abs(gap):.2f}%p'
+
                             f'</span>'
+
                         )
+
 
                     else:
 
-                        gap_text = (
-                            "0.00%p"
-                        )
 
+                        gap_text = "0.00%p"
 
-
+                        id="part2"
                     # -------------------------------
-                    # 은행별 최고금리 리스트 생성
+                    # 비교 대상 제외 후 은행 리스트 생성
                     # -------------------------------
 
                     bank_products = []
 
 
-                    for bank,rate in bank_best_rates.items():
+                    for bank, rate in bank_best_rates.items():
+
 
                         if normalize(bank) == normalize(target_bank):
+
                             continue
+
 
 
                         bank_products.append({
 
-                            "bank":bank,
-                            "rate":rate
+                            "bank": bank,
+
+                            "rate": rate
 
                         })
 
 
 
+                    # -------------------------------
+                    # 우위 / 열위 판단
+                    # -------------------------------
+
                     higher_words = [
 
                         "높은",
+
                         "좋은",
+
                         "우위",
+
                         "앞서는",
+
                         "경쟁력",
+
                         "나은",
-                        "더 높은",
+
+                        "이기는",
+
+                        "우세",
+
+                        "우세한",
+
+                        "상위",
+
                         "앞선",
-                        "유리한"
+
+                        "더 높은"
 
                     ]
 
 
+
                     is_higher = any(
+
                         x in question
+
                         for x in higher_words
+
                     )
 
 
@@ -4221,7 +4339,9 @@ def ai_search():
                         result = [
 
                             x
+
                             for x in bank_products
+
                             if x["rate"] > target_rate
 
                         ]
@@ -4237,7 +4357,9 @@ def ai_search():
 
 
                         title = (
+
                             f"📈 {target_bank} 대비 우위 은행"
+
                         )
 
 
@@ -4247,7 +4369,9 @@ def ai_search():
                         result = [
 
                             x
+
                             for x in bank_products
+
                             if x["rate"] < target_rate
 
                         ]
@@ -4263,7 +4387,9 @@ def ai_search():
 
 
                         title = (
+
                             f"📉 {target_bank} 대비 열위 은행"
+
                         )
 
 
@@ -4273,12 +4399,17 @@ def ai_search():
                         f"{title}\n\n"
 
                         f"{target_bank} 최고금리 : "
+
                         f"{target_rate:.2f}%\n\n"
 
                         f"시장순위 : "
-                        f"{rank['rank']}위 / {rank['total']}개사\n"
+
+                        f"{rank['rank']}위 / "
+
+                        f"{rank['total']}개사\n\n"
 
                         f"저축은행 최고금리 평균 대비 : "
+
                         f"{gap_text}\n\n"
 
                     )
@@ -4291,7 +4422,9 @@ def ai_search():
                         answer += (
 
                             f"현재 {target_bank}보다 "
+
                             f"높은 금리를 제공하는 은행은 "
+
                             f"{len(result)}개입니다.\n\n"
 
                         )
@@ -4303,17 +4436,23 @@ def ai_search():
                         answer += (
 
                             f"현재 {target_bank}보다 "
+
                             f"낮은 금리를 제공하는 은행은 "
+
                             f"{len(result)}개입니다.\n\n"
 
                         )
 
 
 
+                    # -------------------------------
+                    # TOP 10 출력
+                    # -------------------------------
+
                     if result:
 
 
-                        for idx,item in enumerate(
+                        for idx, item in enumerate(
 
                             result[:10],
 
@@ -4325,12 +4464,15 @@ def ai_search():
                             diff = round(
 
                                 item["rate"]
+
                                 -
+
                                 target_rate,
 
                                 2
 
                             )
+
 
 
                             if diff > 0:
@@ -4339,7 +4481,9 @@ def ai_search():
                                 diff_text = (
 
                                     f'<span class="rate-change increase">'
+
                                     f'+{diff:.2f}%p'
+
                                     f'</span>'
 
                                 )
@@ -4351,7 +4495,9 @@ def ai_search():
                                 diff_text = (
 
                                     f'<span class="rate-change decrease">'
+
                                     f'▲{abs(diff):.2f}%p'
+
                                     f'</span>'
 
                                 )
@@ -4361,8 +4507,11 @@ def ai_search():
                             answer += (
 
                                 f"{idx}. "
+
                                 f"{item['bank']} "
+
                                 f"{item['rate']:.2f}% "
+
                                 f"({diff_text})\n"
 
                             )
@@ -4378,6 +4527,7 @@ def ai_search():
                         )
 
 
+
                 else:
 
 
@@ -4386,6 +4536,7 @@ def ai_search():
                         f"{target_bank} 데이터를 찾을 수 없습니다."
 
                     )
+
 
 
             else:

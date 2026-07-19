@@ -1255,6 +1255,124 @@ def analyze_bank_status(
 
 
 
+        # -------------------------------
+    # 상위 경쟁사 분석 V4.5
+    # -------------------------------
+
+    bank_best_rates = {}
+
+
+    for item in products:
+
+
+        bank = item.get(
+
+            "bank"
+
+        )
+
+
+        rate = item.get(
+
+            "rate",
+
+            0
+
+        )
+
+
+        if not bank:
+
+            continue
+
+
+        if rate <= 0:
+
+            continue
+
+
+
+        if (
+
+            bank not in bank_best_rates
+
+            or rate >
+
+            bank_best_rates[bank]
+
+        ):
+
+
+            bank_best_rates[bank] = rate
+
+
+
+    top10_rates = sorted(
+
+        bank_best_rates.values(),
+
+        reverse=True
+
+    )[:10]
+
+
+
+    if top10_rates:
+
+
+        top10_avg = round(
+
+            sum(top10_rates)
+
+            /
+
+            len(top10_rates),
+
+            2
+
+        )
+
+
+    else:
+
+
+        top10_avg = 0
+
+
+
+    top10_gap = round(
+
+        best["rate"]
+
+        -
+
+        top10_avg,
+
+        2
+
+    )
+
+
+
+    if rank["rank"] <= 10:
+
+
+        position_text = "상위권"
+
+
+    elif rank["rank"] <= 40:
+
+
+        position_text = "중위권"
+
+
+    else:
+
+
+        position_text = "하위권"
+
+
+
     return {
 
 
@@ -1293,7 +1411,11 @@ def analyze_bank_status(
 
             round(
 
-                best["rate"] - avg_rate,
+                best["rate"]
+
+                -
+
+                avg_rate,
 
                 2
 
@@ -1303,6 +1425,21 @@ def analyze_bank_status(
         "market_position":
 
             market_position,
+
+
+        "position_text":
+
+            position_text,
+
+
+        "top10_avg":
+
+            top10_avg,
+
+
+        "top10_gap":
+
+            top10_gap,
 
 
         "higher":
@@ -1320,18 +1457,38 @@ def analyze_bank_status(
 
 # -------------------------------
 # 금리 증감 표시
-# 상승 / 하락 표시
+# 대시보드 공통 규칙
+# 상승 : 파란색 + 표시
+# 하락 : 빨간색 ▲ 표시
 # -------------------------------
 
 def format_change(change):
 
     if change > 0:
 
-        return f"🔵 +{change:.2f}%p"
+        return (
+
+            f'<span class="rate-change increase">'
+
+            f'+{change:.2f}%p'
+
+            f'</span>'
+
+        )
+
 
     elif change < 0:
 
-        return f"🔴 ▲{abs(change):.2f}%p"
+        return (
+
+            f'<span class="rate-change decrease">'
+
+            f'▲{abs(change):.2f}%p'
+
+            f'</span>'
+
+        )
+
 
     else:
 
@@ -3279,25 +3436,129 @@ def ai_search():
 
 
 
-            answer = (
+                answer = (
 
-                f"■ {bank_analysis['bank']} 경쟁력 분석\n\n"
+                    f"■ {bank_analysis['bank']} 경쟁력 분석\n\n"
 
-                f"기준기간 : {search_period}\n\n"
+                    f"기준기간 : {search_period}\n\n"
 
-                f"현재금리 : {bank_analysis['rate']:.2f}%\n\n"
+                    f"현재금리 : {bank_analysis['rate']:.2f}%\n\n"
 
-                f"시장순위 : {bank_analysis['rank']}위 / {bank_analysis['total']}개\n\n"
+                    f"시장순위 : "
 
-                f"평균금리 대비 : {gap_text}\n\n"
+                    f"{bank_analysis['rank']}위 / "
 
-                f"평가 : {evaluation}"
+                    f"{bank_analysis['total']}개사\n\n"
 
-            )
+                    f"시장 위치 : "
+
+                    f"{bank_analysis['position_text']}\n\n"
+
+                    f"평균금리 대비 : "
+
+                    f"{gap_text}\n\n"
+
+                    f"TOP10 평균금리 : "
+
+                    f"{bank_analysis['top10_avg']:.2f}%\n\n"
+
+                    f"TOP10 대비 : "
+
+                    f"{format_change(bank_analysis['top10_gap'])}\n\n"
+
+                    f"평가 : "
+
+                    f"{evaluation}"
+
+                )
 
 
 
                 # -------------------------------
+                # 경쟁사 비교 TOP5 추가
+                # -------------------------------
+
+                if bank_analysis.get("higher"):
+
+
+                    answer += (
+
+                        "\n\n📈 "
+
+                        f"{bank_analysis['bank']}보다 높은 금리 TOP5\n\n"
+
+                    )
+
+
+                    for item in bank_analysis["higher"][:5]:
+
+
+                        diff = round(
+
+                            item["rate"]
+
+                            -
+
+                            bank_analysis["rate"],
+
+                            2
+
+                        )
+
+
+                        answer += (
+
+                            f"{item['bank']} "
+
+                            f"{item['rate']:.2f}% "
+
+                            f"(+{diff:.2f}%p)\n"
+
+                        )
+
+
+
+                if bank_analysis.get("lower"):
+
+
+                    answer += (
+
+                        "\n\n📉 "
+
+                        f"{bank_analysis['bank']}보다 낮은 금리 TOP5\n\n"
+
+                    )
+
+
+                    for item in bank_analysis["lower"][:5]:
+
+
+                        diff = round(
+
+                            bank_analysis["rate"]
+
+                            -
+
+                            item["rate"],
+
+                            2
+
+                        )
+
+
+                        answer += (
+
+                            f"{item['bank']} "
+
+                            f"{item['rate']:.2f}% "
+
+                            f"(▲{diff:.2f}%p)\n"
+
+                        )
+
+
+
+        # -------------------------------
         # 최고 금리
         # -------------------------------
 

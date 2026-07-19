@@ -214,38 +214,241 @@ def normalize(text):
 
 BANK_ALIAS = {
 
+    # 우리금융저축은행
+    "우리금융저축은행": "우리금융저축은행",
     "우리금융": "우리금융저축은행",
-    "우리": "우리금융저축은행",
     "우리저축": "우리금융저축은행",
     "우리저축은행": "우리금융저축은행",
+    "우리": "우리금융저축은행",
 
-    "신한": "신한저축은행",
-    "신한저축": "신한저축은행",
+
+    # 신한저축은행
     "신한저축은행": "신한저축은행",
+    "신한저축": "신한저축은행",
+    "신한": "신한저축은행",
 
-    "하나": "하나저축은행",
-    "하나저축": "하나저축은행",
+
+    # 하나저축은행
     "하나저축은행": "하나저축은행",
+    "하나저축": "하나저축은행",
+    "하나": "하나저축은행",
 
-    "KB": "KB저축은행",
+
+    # KB저축은행
+    "KB저축은행": "KB저축은행",
+    "KB저축": "KB저축은행",
     "kb": "KB저축은행",
     "국민": "KB저축은행",
-    "KB저축": "KB저축은행",
-    "KB저축은행": "KB저축은행"
+
+
+    # SBI저축은행
+    "SBI저축은행": "SBI저축은행",
+    "SBI저축": "SBI저축은행",
+    "SBI": "SBI저축은행",
+    "sbi": "SBI저축은행",
+
+
+    # OK저축은행
+    "OK저축은행": "OK저축은행",
+    "OK저축": "OK저축은행",
+    "OK": "OK저축은행",
+    "ok": "OK저축은행",
+
+
+    # 페퍼저축은행
+    "페퍼저축은행": "페퍼저축은행",
+    "페퍼저축": "페퍼저축은행",
+    "페퍼": "페퍼저축은행",
+
+
+    # 웰컴저축은행
+    "웰컴저축은행": "웰컴저축은행",
+    "웰컴": "웰컴저축은행",
+
+
+    # 모아저축은행
+    "모아저축은행": "모아저축은행",
+    "모아": "모아저축은행",
+
+
+    # 한국투자저축은행
+    "한국투자저축은행": "한국투자저축은행",
+    "한국투자": "한국투자저축은행",
+
+
+    # 대원저축은행
+    "대원저축은행": "대원저축은행",
+    "대원": "대원저축은행"
 
 }
 
 
+
 def resolve_bank_name(question):
+
+
+    print(
+
+        "resolve 입력:",
+
+        question
+
+    )
+
 
     q = normalize(question)
 
 
-    for keyword, bank_name in BANK_ALIAS.items():
+    print(
+
+        "normalize 결과:",
+
+        q
+
+    )
+
+
+    # -------------------------------
+    # 기존 별칭 우선 검색
+    # -------------------------------
+
+    for keyword, bank_name in sorted(
+
+        BANK_ALIAS.items(),
+
+        key=lambda x: len(x[0]),
+
+        reverse=True
+
+    ):
+
 
         if normalize(keyword) in q:
 
-            return bank_name
+
+            print(
+
+                "별칭 매칭:",
+
+                keyword,
+
+                "->",
+
+                bank_name
+
+            )
+
+
+            return bank_name.replace(
+
+                "저축은행",
+
+                ""
+
+            )
+
+
+
+    # -------------------------------
+    # 전체 저축은행 자동 검색
+    # -------------------------------
+
+    try:
+
+
+        products = build_products()
+
+
+        print(
+
+            "AI 검색 질문:",
+
+            question
+
+        )
+
+
+        print(
+
+            "정규화 질문:",
+
+            q
+
+        )
+
+
+        print(
+
+            "은행 샘플:",
+
+            [
+
+                x.get("bank")
+
+                for x in products[:10]
+
+            ]
+
+        )
+
+
+
+        banks = sorted(
+
+            set(
+
+                x.get("bank")
+
+                for x in products
+
+                if x.get("bank")
+
+            ),
+
+            key=len,
+
+            reverse=True
+
+        )
+
+
+
+        for bank in banks:
+
+
+            bank_normal = normalize(bank)
+
+
+
+            if bank_normal in q:
+
+
+                return bank
+
+
+
+            if (
+
+                bank_normal + "저축은행"
+
+            ) in q:
+
+
+                return bank
+
+
+
+    except Exception as e:
+
+
+        print(
+
+            "은행 자동검색 오류:",
+
+            e
+
+        )
+
 
 
     return None

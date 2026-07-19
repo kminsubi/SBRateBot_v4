@@ -3749,7 +3749,7 @@ def ai_search():
 
                         )
 
-                        # -------------------------------
+        # -------------------------------
         # 특정 은행 대비 금리 비교 검색 V4.3
         #
         # 예)
@@ -3822,46 +3822,119 @@ def ai_search():
                     )
 
 
+                                        # -------------------------------
+                    # 시장 평균금리 계산
+                    #
+                    # 기준:
+                    # - 정기예금 시장현황과 동일
+                    # - 12개월(top_12m) 기준
+                    # - 0% 금리 제외
                     # -------------------------------
-                    # 은행별 최고금리 평균 기준
-                    # (상품 전체 평균 제거)
+
+
+                    valid_rates = []
+
+
+                    for item in products:
+
+
+                        rate = float(
+
+                            item.get(
+                                "top_12m"
+                            )
+                            or item.get(
+                                "rate"
+                            )
+                            or 0
+
+                        )
+
+
+                        if rate > 0:
+
+                            valid_rates.append(
+                                rate
+                            )
+
+
+
+                    if valid_rates:
+
+
+                        market_average = (
+
+                            sum(valid_rates)
+
+                            /
+
+                            len(valid_rates)
+
+                        )
+
+
+                    else:
+
+
+                        market_average = 0
+
+
+
                     # -------------------------------
+                    # 은행별 최고금리 리스트 생성용
+                    # 비교 대상은 은행별 최고금리 유지
+                    # -------------------------------
+
 
                     bank_best_rates = {}
 
+
+
                     for item in products:
+
 
                         bank = item.get(
                             "bank"
                         )
 
-                        rate = item.get(
-                            "rate",
-                            0
+
+                        rate = float(
+
+                            item.get(
+                                "top_12m"
+                            )
+                            or item.get(
+                                "rate"
+                            )
+                            or 0
+
                         )
 
 
                         if not bank:
+
                             continue
 
 
+
+                        if rate <= 0:
+
+                            continue
+
+
+
                         if (
+
                             bank not in bank_best_rates
+
                             or rate >
+
                             bank_best_rates[bank]
+
                         ):
 
+
                             bank_best_rates[bank] = rate
-
-
-
-                    market_average = (
-                        sum(
-                            bank_best_rates.values()
-                        )
-                        /
-                        len(bank_best_rates)
-                    )
 
 
                     gap = round(

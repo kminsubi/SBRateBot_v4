@@ -373,7 +373,7 @@ def normalize_question(question):
 
 
 # -------------------------------
-# AI 검색 Intent 판단 V4.6
+# AI 검색 Intent 판단 V4.8
 # -------------------------------
 
 def detect_intent(question):
@@ -384,8 +384,80 @@ def detect_intent(question):
 
 
     # -------------------------------
+    # 금융지주 계열 비교 V4.8
+    #
+    # FINANCIAL_COMPARE
+    #
+    # 금융지주 저축은행 비교
+    # 금융지주 금리 순위
+    # -------------------------------
+
+    if any(
+
+        x in q
+
+        for x in [
+
+            "금융지주",
+
+            "지주계열",
+
+            "4대금융",
+
+            "우리신한하나kb"
+
+        ]
+
+    ):
+
+        return "FINANCIAL_COMPARE"
+
+
+
+    # -------------------------------
+    # 우리금융 경쟁력 분석 V4.8
+    #
+    # 우리금융 시장현황
+    # 우리금융 경쟁력
+    # 우리금융 평가
+    # -------------------------------
+
+    if (
+
+        "우리금융" in q
+
+        and
+
+        any(
+
+            x in q
+
+            for x in [
+
+                "경쟁력",
+
+                "시장현황",
+
+                "현황",
+
+                "평가",
+
+                "위치",
+
+                "어때"
+
+            ]
+
+        )
+
+    ):
+
+        return "COMPETITIVENESS"
+
+
+
+    # -------------------------------
     # 동일 금리 비교
-    # V4.6 추가
     # -------------------------------
 
     if any(
@@ -418,7 +490,6 @@ def detect_intent(question):
 
     # -------------------------------
     # 은행 비교 - 높은 금리
-    # 자연어 표현 확장 V4.6
     # -------------------------------
 
     if any(
@@ -449,10 +520,6 @@ def detect_intent(question):
 
             "앞서는",
 
-            "경쟁력있는",
-
-            "경쟁력있",
-
             "나은",
 
             "상회",
@@ -479,7 +546,6 @@ def detect_intent(question):
 
     # -------------------------------
     # 은행 비교 - 낮은 금리
-    # 자연어 표현 확장 V4.6
     # -------------------------------
 
     if any(
@@ -525,11 +591,7 @@ def detect_intent(question):
 
 
     # -------------------------------
-    # 경쟁력 분석
-    # V4.6 변경
-    #
-    # 금리 경쟁력 질문은
-    # 시장 비교 분석으로 처리
+    # 일반 경쟁력 분석
     # -------------------------------
 
     if any(
@@ -557,6 +619,10 @@ def detect_intent(question):
     ):
 
         return "COMPARE_HIGH"
+
+
+
+    return None
 
 
 
@@ -3846,7 +3912,7 @@ def ai_search():
 # ===================================
 
 
-        # -------------------------------
+                # -------------------------------
         # 금리 차이 조건 검색 결과 우선 적용 V4.5.1
         # -------------------------------
 
@@ -3861,7 +3927,8 @@ def ai_search():
 
 
         # -------------------------------
-        # 우리금융 경쟁력 우선 처리 V4.5
+        # 우리금융 경쟁력 우선 처리 V4.8
+        # 시장 위치 / TOP10 대비 추가
         # -------------------------------
 
 
@@ -3913,6 +3980,77 @@ def ai_search():
 
 
 
+                rate = bank_analysis["rate"]
+
+
+
+                rank = bank_analysis["rank"]
+
+
+
+                total = bank_analysis["total"]
+
+
+
+
+
+                # 시장 위치 계산
+
+
+                position = round(
+
+
+                    (rank / total) * 100,
+
+
+                    1
+
+                )
+
+
+
+
+
+                # TOP10 평균 계산
+
+
+                top10 = sorted(
+
+
+                    products,
+
+
+                    key=lambda x: x["rate"],
+
+
+                    reverse=True
+
+
+                )[:10]
+
+
+
+
+
+                top10_avg = sum(
+
+
+                    x["rate"]
+
+
+                    for x in top10
+
+
+                ) / len(top10)
+
+
+
+
+
+                top10_gap = rate - top10_avg
+
+
+
 
 
                 if gap > 0:
@@ -3932,20 +4070,6 @@ def ai_search():
 
 
                     )
-
-
-
-                    evaluation = (
-
-
-                        "시장 평균 대비 높은 금리로 "
-
-
-                        "금리 경쟁력이 양호합니다."
-
-
-                    )
-
 
 
 
@@ -3969,20 +4093,6 @@ def ai_search():
 
 
 
-                    evaluation = (
-
-
-                        "시장 평균 대비 낮은 금리로 "
-
-
-                        "금리 경쟁력 개선이 필요합니다."
-
-
-                    )
-
-
-
-
                 else:
 
 
@@ -3991,13 +4101,55 @@ def ai_search():
 
 
 
-                    evaluation = (
 
 
-                        "시장 평균 수준의 금리입니다."
+
+                if top10_gap > 0:
+
+
+
+                    top10_gap_text = (
+
+
+                        f'<span class="rate-change increase">'
+
+
+                        f'+{top10_gap:.2f}%p'
+
+
+                        f'</span>'
 
 
                     )
+
+
+
+                elif top10_gap < 0:
+
+
+
+                    top10_gap_text = (
+
+
+                        f'<span class="rate-change decrease">'
+
+
+                        f'▲{abs(top10_gap):.2f}%p'
+
+
+                        f'</span>'
+
+
+                    )
+
+
+
+                else:
+
+
+
+                    top10_gap_text = "0.00%p"
+
 
 
 
@@ -4006,31 +4158,28 @@ def ai_search():
                 answer = (
 
 
-                    "🏦 우리금융저축은행 경쟁력 분석\n\n"
+                    "■ 우리금융 경쟁력 분석\n\n"
 
 
                     f"기준기간 : {search_period}\n\n"
 
 
-                    f"현재금리 : {bank_analysis['rate']:.2f}%\n\n"
+                    f"현재금리 : {rate:.2f}%\n\n"
 
 
-                    f"시장순위 : "
+                    f"시장순위 : {rank}위 / {total}개사\n\n"
 
 
-                    f"{bank_analysis['rank']}위 / "
+                    f"시장 위치 : 상위 {position}%\n\n"
 
 
-                    f"{bank_analysis['total']}개사\n\n"
+                    f"평균금리 대비 : {gap_text}\n\n"
 
 
-                    f"평균금리 대비 : "
+                    f"TOP10 평균금리 : {top10_avg:.2f}%\n\n"
 
 
-                    f"{gap_text}\n\n"
-
-
-                    f"평가 : {evaluation}"
+                    f"TOP10 대비 : {top10_gap_text}"
 
 
                 )

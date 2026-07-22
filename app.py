@@ -362,17 +362,19 @@ def normalize_question(question):
 
     }
 
+
     for old, new in replace_map.items():
 
         q = q.replace(old, new)
 
+
     return q
 
 
-# -------------------------------
-# AI 검색 Intent 판단 V4.5
-# -------------------------------
 
+# -------------------------------
+# AI 검색 Intent 판단 V4.6
+# -------------------------------
 
 def detect_intent(question):
 
@@ -381,9 +383,42 @@ def detect_intent(question):
 
 
 
-        # -------------------------------
+    # -------------------------------
+    # 동일 금리 비교
+    # V4.6 추가
+    # -------------------------------
+
+    if any(
+
+        x in q
+
+        for x in [
+
+            "같은금리",
+
+            "동일금리",
+
+            "같은곳",
+
+            "같은곳있",
+
+            "비슷한금리",
+
+            "동률",
+
+            "공동"
+
+        ]
+
+    ):
+
+        return "COMPARE_SAME"
+
+
+
+    # -------------------------------
     # 은행 비교 - 높은 금리
-    # 자연어 표현 확장 V4.5.2
+    # 자연어 표현 확장 V4.6
     # -------------------------------
 
     if any(
@@ -444,7 +479,7 @@ def detect_intent(question):
 
     # -------------------------------
     # 은행 비교 - 낮은 금리
-    # 자연어 표현 확장 V4.5.2
+    # 자연어 표현 확장 V4.6
     # -------------------------------
 
     if any(
@@ -491,6 +526,10 @@ def detect_intent(question):
 
     # -------------------------------
     # 경쟁력 분석
+    # V4.6 변경
+    #
+    # 금리 경쟁력 질문은
+    # 시장 비교 분석으로 처리
     # -------------------------------
 
     if any(
@@ -517,7 +556,7 @@ def detect_intent(question):
 
     ):
 
-        return "COMPETITIVENESS"
+        return "COMPARE_HIGH"
 
 
 
@@ -546,6 +585,45 @@ def detect_intent(question):
     ):
 
         return "MARKET_STATUS"
+
+
+
+    # -------------------------------
+    # 최고 금리
+    # V4.6 추가 유지
+    # -------------------------------
+
+    if any(
+
+        x in q
+
+        for x in [
+
+            "최고금리",
+
+            "최고",
+
+            "가장높",
+
+            "TOP",
+
+            "탑",
+
+            "1위"
+
+        ]
+
+    ):
+
+        return "TOP_RATE"
+
+
+
+    # -------------------------------
+    # 기본값
+    # -------------------------------
+
+    return "GENERAL"
 
 
 
@@ -6074,16 +6152,17 @@ def ai_search():
 
 
         # -------------------------------
-        # 은행 비교 처리 V4.5
-        #
-        # Intent 기반 비교 처리
+        # 은행 비교 처리 V4.6
         #
         # COMPARE_HIGH
-        # - 페퍼 이기는 곳
-        # - 페퍼보다 높은 곳
+        # - 기준 은행보다 높은 금리
         #
         # COMPARE_LOW
-        # - 신한보다 낮은 곳
+        # - 기준 은행보다 낮은 금리
+        #
+        # COMPARE_SAME
+        # - 기준 은행과 동일 금리
+        #
         # -------------------------------
 
 
@@ -6115,7 +6194,9 @@ def ai_search():
 
                 "COMPARE_HIGH",
 
-                "COMPARE_LOW"
+                "COMPARE_LOW",
+
+                "COMPARE_SAME"
 
             ]
 
@@ -6125,20 +6206,11 @@ def ai_search():
             answer = ""
 
 
-
-            # -------------------------------
-            # 실제 은행명 변환
-            # 예:
-            # 페퍼 -> 페퍼저축은행
-            # -------------------------------
-
-
             target_bank_full = resolve_bank_name(
 
                 question
 
             )
-
 
 
             print(
@@ -6151,11 +6223,6 @@ def ai_search():
 
 
 
-                        # -------------------------------
-            # 대상 은행 최고금리
-            # -------------------------------
-
-
             target_items = find_bank_products(
 
                 products,
@@ -6163,6 +6230,7 @@ def ai_search():
                 target_bank_full
 
             )
+
 
 
             print(
@@ -6178,7 +6246,6 @@ def ai_search():
 
 
             if target_items:
-
 
 
                 target_rate = max(
@@ -6201,130 +6268,86 @@ def ai_search():
 
 
 
-
-
                 # -------------------------------
                 # 시장 평균금리 계산
-                #
-                # 기준:
-                # - 12개월 기준
-                # - 0% 제외
                 # -------------------------------
 
 
                 valid_rates = []
 
 
-
                 for item in products:
-
 
 
                     rate = float(
 
+                        item.get("top_12m")
 
-
-                        item.get(
-
-                            "top_12m"
-
-                        )
-
-
-
-                        or item.get(
-
-                            "rate"
-
-                        )
-
-
+                        or item.get("rate")
 
                         or 0
-
-
 
                     )
 
 
-
                     if rate > 0:
 
-
-
-                        valid_rates.append(
-
-
-                            rate
-
-
-                        )
-
-
+                        valid_rates.append(rate)
 
 
 
                 if valid_rates:
 
 
-
                     market_average = (
-
 
                         sum(valid_rates)
 
-
                         /
 
-
                         len(valid_rates)
-
 
                     )
 
 
-
                 else:
-
 
 
                     market_average = 0
 
 
 
-
-
-                                # -------------------------------
+                # -------------------------------
                 # 은행별 최고금리 생성
                 # -------------------------------
 
+
                 bank_best_rates = {}
+
+
 
                 for item in products:
 
-                    bank = item.get(
-                        "bank"
-                    )
+
+                    bank = item.get("bank")
+
 
                     rate = float(
 
-                        item.get(
-                            "top_12m"
-                        )
+                        item.get("top_12m")
 
-                        or item.get(
-                            "rate"
-                        )
+                        or item.get("rate")
 
                         or 0
 
                     )
 
-                    if not bank:
+
+                    if not bank or rate <= 0:
+
                         continue
 
-                    if rate <= 0:
-                        continue
+
 
                     if (
 
@@ -6338,63 +6361,266 @@ def ai_search():
 
                         bank_best_rates[bank] = rate
 
-                # -------------------------------
-                # 생성 결과 로그
-                # -------------------------------
 
-                print("BANK BEST RATES (RAW)")
+
+                print(
+
+                    "BANK BEST RATES (RAW)"
+
+                )
+
+
 
                 for bank, rate in sorted(
 
                     bank_best_rates.items(),
 
-                    key=lambda x: x[1],
+                    key=lambda x:x[1],
 
                     reverse=True
 
                 ):
 
-                    print(bank, rate)
+
+                    print(
+
+                        bank,
+
+                        rate
+
+                    )
+
+
+
+                # -------------------------------
+                # 시장 평균 대비
+                #
+                # 증가 : +
+                # 감소 : ▲
+                #
+                # 괄호 표시 통일
+                # -------------------------------
+
 
                 gap = round(
 
-                    target_rate
-
-                    -
-
-                    market_average,
+                    target_rate - market_average,
 
                     2
 
                 )
 
+
+
                 if gap > 0:
+
 
                     gap_text = (
 
                         f'<span class="rate-change increase">'
 
-                        f'+{gap:.2f}%p'
+                        f'(+{gap:.2f}%p)'
 
                         f'</span>'
 
                     )
 
+
                 elif gap < 0:
+
 
                     gap_text = (
 
                         f'<span class="rate-change decrease">'
 
-                        f'▲{abs(gap):.2f}%p'
+                        f'(▲{abs(gap):.2f}%p)'
 
                         f'</span>'
 
                     )
 
+
                 else:
 
-                    gap_text = "0.00%p"
+
+                    gap_text = "(0.00%p)"
+
+
+
+                # -------------------------------
+                # 비교 대상 제외
+                # -------------------------------
+
+
+                bank_products = []
+
+
+
+                for bank, rate in bank_best_rates.items():
+
+
+                    if normalize(bank) == normalize(target_bank_full):
+
+                        continue
+
+
+
+                    bank_products.append({
+
+                        "bank": bank,
+
+                        "rate": rate
+
+                    })
+
+
+
+                bank_products.sort(
+
+                    key=lambda x:x["rate"],
+
+                    reverse=True
+
+                )
+
+
+
+                # -------------------------------
+                # 비교 조건 처리
+                # -------------------------------
+
+
+                if intent == "COMPARE_SAME":
+
+
+                    result = [
+
+                        x
+
+                        for x in bank_products
+
+                        if x["rate"] == target_rate
+
+                    ]
+
+
+                    title = (
+
+                        f"🔄 {target_bank_full} 동일 금리 은행"
+
+                    )
+
+
+
+                elif intent == "COMPARE_HIGH":
+
+
+                    result = [
+
+                        x
+
+                        for x in bank_products
+
+                        if x["rate"] > target_rate
+
+                    ]
+
+
+                    title = (
+
+                        f"📈 {target_bank_full} 대비 높은 금리 은행"
+
+                    )
+
+
+
+                else:
+
+
+                    result = [
+
+                        x
+
+                        for x in bank_products
+
+                        if x["rate"] < target_rate
+
+                    ]
+
+
+                    title = (
+
+                        f"📉 {target_bank_full} 대비 낮은 금리 은행"
+
+                    )
+
+
+
+                result.sort(
+
+                    key=lambda x:x["rate"],
+
+                    reverse=True
+
+                )
+
+
+
+                # -------------------------------
+                # 동일 최고금리 은행
+                #
+                # 17 출력용
+                # -------------------------------
+
+
+                same_rate_result = [
+
+                    x
+
+                    for x in bank_products
+
+                    if x["rate"] == target_rate
+
+                ]
+
+
+
+                same_rate_result.sort(
+
+                    key=lambda x:x["bank"]
+
+                )
+
+
+
+                same_rate_count = (
+
+                    len(same_rate_result)
+
+                    +
+
+                    1
+
+                )
+
+
+
+                print(
+
+                    "COMPARE RESULT COUNT:",
+
+                    len(result)
+
+                )
+
+
+                print(
+
+                    "SAME RATE RESULT:",
+
+                    same_rate_result[:5]
+
+                )
 
                     
 
@@ -6402,6 +6628,7 @@ def ai_search():
 # SBRateBot V4 app.py
 # 16/20
 # ===================================
+
 
                 # -------------------------------
                 # 비교 대상 제외 후 은행 리스트 생성
@@ -6411,168 +6638,336 @@ def ai_search():
                 # - 비교 대상 은행 제외
                 # -------------------------------
 
+
                 bank_products = []
+
 
                 for bank, rate in bank_best_rates.items():
 
+
                     if normalize(bank) == normalize(target_bank_full):
+
                         continue
 
+
                     bank_products.append({
+
                         "bank": bank,
+
                         "rate": rate
+
                     })
+
+
 
                 # -------------------------------
                 # 은행 금리 내림차순 정렬
                 # -------------------------------
 
+
                 bank_products.sort(
+
                     key=lambda x: x["rate"],
+
                     reverse=True
+
                 )
+
+
 
                 # -------------------------------
                 # 비교 대상 로그
                 # -------------------------------
 
+
                 print("BANK PRODUCTS")
 
+
                 for item in bank_products[:20]:
+
                     print(item)
 
+
                 print(
+
                     "COMPARE TARGET BANK:",
+
                     target_bank_full
+
                 )
+
 
                 print(
+
                     "COMPARE TARGET RATE:",
+
                     target_rate
+
                 )
 
+
+
                 # -------------------------------
-                # 높은 금리 / 낮은 금리
+                # 비교 조건 처리
+                #
+                # COMPARE_HIGH
+                # 기준 은행보다 높은 금리
+                #
+                # COMPARE_LOW
+                # 기준 은행보다 낮은 금리
+                #
+                # COMPARE_SAME
+                # 기준 은행과 동일 금리
                 # -------------------------------
+
 
                 if intent == "COMPARE_HIGH":
 
+
                     result = [
+
                         x
+
                         for x in bank_products
+
                         if x["rate"] > target_rate
+
                     ]
 
+
                     title = (
+
                         f"📈 {target_bank_full} 대비 높은 금리 은행"
+
                     )
+
+
+                elif intent == "COMPARE_SAME":
+
+
+                    result = [
+
+                        x
+
+                        for x in bank_products
+
+                        if x["rate"] == target_rate
+
+                    ]
+
+
+                    title = (
+
+                        f"🔄 {target_bank_full} 동일 금리 은행"
+
+                    )
+
 
                 else:
 
+
                     result = [
+
                         x
+
                         for x in bank_products
+
                         if x["rate"] < target_rate
+
                     ]
 
+
                     title = (
+
                         f"📉 {target_bank_full} 대비 낮은 금리 은행"
+
                     )
 
+
+
                 # -------------------------------
-                # 동일 최고금리 은행
-                # (17에서 출력용)
+                # 동일 금리 경쟁 은행
+                #
+                # 기준은행 제외
+                #
+                # COMPARE_HIGH 출력용
                 # -------------------------------
+
 
                 same_rate_result = [
+
                     x
+
                     for x in bank_products
+
                     if x["rate"] == target_rate
+
                 ]
 
+
                 same_rate_result.sort(
-                    key=lambda x: x["bank"]
+
+                    key=lambda x:x["bank"]
+
                 )
 
-                # 기준은행 포함
+
+
+                # 기준은행 포함 공동 1위 개수
+
                 same_rate_count = len(same_rate_result) + 1
+
+
 
                 # -------------------------------
                 # 결과 금리순 정렬
                 # -------------------------------
 
+
                 result.sort(
-                    key=lambda x: x["rate"],
+
+                    key=lambda x:x["rate"],
+
                     reverse=True
+
                 )
 
+
+
                 # -------------------------------
-                # 비교 테스트 로그
+                # 로그
                 # -------------------------------
 
+
                 print(
+
                     "COMPARE RESULT COUNT:",
+
                     len(result)
+
                 )
 
+
                 print(
+
                     "COMPARE RESULT SAMPLE:",
+
                     result[:5]
+
                 )
 
+
                 print(
+
                     "SAME RATE RESULT:",
+
                     same_rate_result[:5]
+
                 )
+
 
                 print(
+
                     "BANK BEST SAMPLE:",
+
                     bank_products[:10]
+
                 )
 
-                                # -------------------------------
+
+
+                # -------------------------------
                 # 기본 답변 생성
                 # -------------------------------
 
+
                 if intent == "COMPARE_HIGH":
+
 
                     if result:
 
+
                         answer = (
+
                             "📊 시장 모니터링 결과<br><br>"
+
                             f"{target_bank_full}보다 높은 금리를 제공하는 은행이 있습니다.<br><br>"
+
                             f"시장 최고금리 : {result[0]['rate']:.2f}%<br>"
+
                             f"{target_bank_full} 최고금리 : {target_rate:.2f}%<br>"
+
                             f"시장순위 : {rank['rank']}위 / {rank['total']}개사<br><br>"
+
                         )
+
 
                     else:
 
+
                         if same_rate_result:
 
+
                             answer = (
+
                                 "🏆 시장 모니터링 결과<br><br>"
+
                                 f"{target_bank_full}는 현재 시장 최고금리 공동 1위입니다.<br><br>"
+
                                 f"시장 최고금리 : {target_rate:.2f}%<br>"
-                                f"공동 1위 경쟁 : {same_rate_count}개 은행<br><br>"
+
+                                f"공동 1위 경쟁 은행 : {same_rate_count}개 은행<br><br>"
+
                             )
+
 
                         else:
 
+
                             answer = (
+
                                 "🏆 시장 모니터링 결과<br><br>"
+
                                 f"{target_bank_full}는 현재 시장 최고금리 단독 1위입니다.<br><br>"
+
                                 f"시장 최고금리 : {target_rate:.2f}%<br>"
+
                                 f"시장순위 : 1위 / {rank['total']}개사<br><br>"
+
                             )
+
+
+
+                elif intent == "COMPARE_SAME":
+
+
+                    answer = (
+
+                        f"{title}<br><br>"
+
+                        f"{target_bank_full} 최고금리 : {target_rate:.2f}%<br>"
+
+                        f"시장순위 : {rank['rank']}위 / {rank['total']}개사<br>"
+
+                        f"시장 평균 대비 : {gap_text}<br><br>"
+
+                    )
+
+
 
                 else:
 
+
                     answer = (
+
                         f"{title}<br><br>"
+
                         f"{target_bank_full} 최고금리 : {target_rate:.2f}%<br>"
+
                         f"시장순위 : {rank['rank']}위 / {rank['total']}개사<br>"
+
                         f"시장 평균 대비 : {gap_text}<br><br>"
+
                     )
 
 
@@ -6581,102 +6976,245 @@ def ai_search():
 # 17/20
 # ===================================
 
+
                 # -------------------------------
-                # AI 비교 검색 결과 출력
+                # AI 비교 검색 결과 출력 V4.6
                 #
-                # 증감 표시 색상 통일 V4.5.2
+                # COMPARE_HIGH
+                # - 기준 은행보다 높은 금리 검색
                 #
-                # AI 검색 결과 표시 기준
+                # COMPARE_LOW
+                # - 기준 은행보다 낮은 금리 검색
+                #
+                # COMPARE_SAME
+                # - 기준 은행과 동일 금리 검색
+                #
+                # 금리 증감 표시 통일
+                #
                 # 증가 : 파란색 + 표시
                 # 감소 : 빨간색 ▲ 표시
                 #
-                # 대시보드 / AI 응답 표시 규칙 통일
+                # 대시보드 / AI 응답 동일 기준
                 # -------------------------------
+
 
                 print(
                     "COMPARE RESULT:",
                     result[:10]
                 )
 
+
                 print(
                     "SAME RATE RESULT:",
                     same_rate_result[:10]
                 )
 
+
+
+                # -------------------------------
+                # 비교 결과 출력
+                # -------------------------------
+
+
                 if result:
 
+
                     for idx, item in enumerate(
+
                         result[:10],
+
                         start=1
+
                     ):
 
+
                         diff = round(
-                            item["rate"] - target_rate,
+
+                            item["rate"]
+
+                            -
+
+                            target_rate,
+
                             2
+
                         )
+
+
 
                         if diff > 0:
 
+
                             diff_text = (
+
                                 f'<span class="rate-change increase">'
-                                f'+{diff:.2f}%p'
+
+                                f'(+{diff:.2f}%p)'
+
                                 f'</span>'
+
                             )
+
 
                         elif diff < 0:
 
+
                             diff_text = (
+
                                 f'<span class="rate-change decrease">'
-                                f'▲{abs(diff):.2f}%p'
+
+                                f'(▲{abs(diff):.2f}%p)'
+
                                 f'</span>'
+
                             )
+
 
                         else:
 
-                            diff_text = "동일금리"
+
+                            diff_text = "(동일금리)"
+
+
 
                         answer += (
+
                             f"{idx}. "
+
                             f"{item['bank']} "
+
                             f"{item['rate']:.2f}% "
+
                             f"{diff_text}<br>"
+
                         )
 
-                else:
 
-                    if intent == "COMPARE_HIGH":
+
+                # -------------------------------
+                # 동일 금리 결과
+                #
+                # COMPARE_SAME
+                # -------------------------------
+
+
+                elif intent == "COMPARE_SAME":
+
+
+                    if same_rate_result:
+
 
                         answer += (
-                            f"현재 {target_bank_full}보다 "
-                            f"높은 금리를 제공하는 은행은 없습니다.<br>"
+
+                            "<b>동일 최고금리 경쟁 은행</b><br><br>"
+
                         )
 
-                        if same_rate_result:
+
+                        for idx, item in enumerate(
+
+                            same_rate_result,
+
+                            start=1
+
+                        ):
+
 
                             answer += (
-                                "<br><b>동일 최고금리 경쟁 은행</b><br>"
+
+                                f"{idx}. "
+
+                                f"{item['bank']} "
+
+                                f"{item['rate']:.2f}% "
+
+                                "(동일금리)<br>"
+
                             )
 
-                            for idx, item in enumerate(
-                                same_rate_result,
-                                start=1
-                            ):
 
-                                answer += (
-                                    f"{idx}. "
-                                    f"{item['bank']} "
-                                    f"{item['rate']:.2f}%<br>"
-                                )
+                    else:
 
-                    elif intent == "COMPARE_LOW":
 
                         answer += (
-                            f"현재 {target_bank_full}보다 "
-                            f"낮은 금리를 제공하는 은행은 없습니다.<br>"
+
+                            f"현재 {target_bank_full}와 "
+
+                            "동일한 금리를 제공하는 은행은 없습니다.<br>"
+
                         )
 
+
+
+                # -------------------------------
+                # 높은 금리 없음
+                #
+                # 최고금리 유지 상태
+                # -------------------------------
+
+
+                elif intent == "COMPARE_HIGH":
+
+
+                    answer += (
+
+                        f"현재 {target_bank_full}보다 "
+
+                        f"높은 금리를 제공하는 은행은 없습니다.<br>"
+
+                    )
+
+
+                    if same_rate_result:
+
+
+                        answer += (
+
+                            "<br><b>동일 최고금리 경쟁 은행</b><br>"
+
+                        )
+
+
+                        for idx, item in enumerate(
+
+                            same_rate_result,
+
+                            start=1
+
+                        ):
+
+
+                            answer += (
+
+                                f"{idx}. "
+
+                                f"{item['bank']} "
+
+                                f"{item['rate']:.2f}% "
+
+                                "(동일금리)<br>"
+
+                            )
+
+
+
+                # -------------------------------
+                # 낮은 금리 없음
+                # -------------------------------
+
+
+                elif intent == "COMPARE_LOW":
+
+
+                    answer += (
+
+                        f"현재 {target_bank_full}보다 "
+
+                        f"낮은 금리를 제공하는 은행은 없습니다.<br>"
+
+                    )
                         
-                # ===================================
+# ===================================
 # SBRateBot V4 app.py
 # 18/20
 # ===================================

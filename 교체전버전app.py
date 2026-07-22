@@ -17,18 +17,6 @@ import re
 app = Flask(__name__)
 
 
-# -------------------------------
-# Dashboard
-# -------------------------------
-
-@app.route("/")
-def index():
-
-    return render_template(
-        "index.html"
-    )
-
-
 
 # -------------------------------
 # 기본 경로 설정
@@ -196,7 +184,7 @@ def normalize(text):
 
         "은행",
 
-        " ",
+        " ", 
 
         "-",
 
@@ -218,101 +206,6 @@ def normalize(text):
 
 
     return text.lower()
-
-
-
-# -------------------------------
-# 상품 키워드 검색 V4.5
-# -------------------------------
-
-
-def search_product_keyword(products, question):
-
-
-    q = normalize(question)
-
-
-
-    keywords = [
-
-
-        "정기예금",
-
-        "예금",
-
-        "회전정기예금",
-
-        "저축은행",
-
-        "비대면",
-
-        "특판"
-
-
-    ]
-
-
-
-    keyword = None
-
-
-
-    for item in keywords:
-
-
-        if normalize(item) in q:
-
-
-            keyword = item
-
-            break
-
-
-
-    if not keyword:
-
-
-        return []
-
-
-
-
-    result = []
-
-
-
-    for product in products:
-
-
-
-        product_name = normalize(
-
-
-            product.get(
-
-
-                "product",
-
-
-                ""
-
-
-            )
-
-
-        )
-
-
-
-        if normalize(keyword) in product_name:
-
-
-
-            result.append(product)
-
-
-
-    return result
 
 # -------------------------------
 # AI 자연어 질문 전처리 V4.6
@@ -381,16 +274,15 @@ def detect_intent(question):
 
 
 
-        # -------------------------------
+    # -------------------------------
     # 은행 비교 - 높은 금리
-    # 자연어 표현 확장 V4.5.2
     # -------------------------------
 
     if any(
 
         x in q
 
-        for x in [
+         for x in [
 
             "보다높",
 
@@ -402,13 +294,7 @@ def detect_intent(question):
 
             "좋은곳",
 
-            "좋은금리",
-
-            "금리좋",
-
             "이기는",
-
-            "이긴",
 
             "우위",
 
@@ -416,23 +302,11 @@ def detect_intent(question):
 
             "경쟁력있는",
 
-            "경쟁력있",
-
             "나은",
 
             "상회",
 
-            "초과",
-
-            "위에있는",
-
-            "위인",
-
-            "더높",
-
-            "높은금리",
-
-            "금리높은"
+            "초과"
 
         ]
 
@@ -444,7 +318,6 @@ def detect_intent(question):
 
     # -------------------------------
     # 은행 비교 - 낮은 금리
-    # 자연어 표현 확장 V4.5.2
     # -------------------------------
 
     if any(
@@ -459,10 +332,6 @@ def detect_intent(question):
 
             "낮은",
 
-            "낮은금리",
-
-            "금리낮",
-
             "하회",
 
             "밀리는",
@@ -471,15 +340,7 @@ def detect_intent(question):
 
             "열위",
 
-            "떨어지는",
-
-            "아래있는",
-
-            "아래인",
-
-            "더낮",
-
-            "금리낮은"
+            "떨어지는"
 
         ]
 
@@ -1176,14 +1037,10 @@ def get_bank_best_rates(products):
     )
 
 
-# ===================================
-# SBRateBot V4 app.py
-# 2/20
-# ===================================
 
 
 # -------------------------------
-# 시장 은행 순위 계산
+# 시장 순위 계산
 # -------------------------------
 
 
@@ -1203,25 +1060,33 @@ def get_market_bank_rank(
     )
 
 
+
+    bank_best = [
+
+        x
+
+        for x in bank_best
+
+        if x["rate"] > 0
+
+    ]
+
+
+
     bank_best.sort(
 
         key=lambda x:
 
-            x["rate"],
+        x["rate"],
 
         reverse=True
 
     )
 
 
+
     rank = "-"
 
-
-    total = len(
-
-        bank_best
-
-    )
 
 
     target = normalize(
@@ -1229,6 +1094,7 @@ def get_market_bank_rank(
         target_bank
 
     )
+
 
 
     for idx,item in enumerate(
@@ -1240,11 +1106,7 @@ def get_market_bank_rank(
     ):
 
 
-        if normalize(
-
-            item["bank"]
-
-        ) == target:
+        if normalize(item["bank"]) == target:
 
 
             rank = idx
@@ -1262,542 +1124,23 @@ def get_market_bank_rank(
 
         "total":
 
-            total
+            len(bank_best)
 
     }
 
-
-
-
-# -------------------------------
-# 금리 변화 표시 포맷
-# -------------------------------
-
-
-def format_change(
-
-    value
-
-):
-
-
-    try:
-
-
-        value = float(
-
-            value
-
-        )
-
-
-    except:
-
-
-        return "0.00%p"
-
-
-
-    if value > 0:
-
-
-        return (
-
-            '<span class="rate-change increase">'
-
-            f'+{value:.2f}%p'
-
-            '</span>'
-
-        )
-
-
-    elif value < 0:
-
-
-        return (
-
-            '<span class="rate-change decrease">'
-
-            f'▲{abs(value):.2f}%p'
-
-            '</span>'
-
-        )
-
-
-    else:
-
-
-        return (
-
-            '<span class="rate-change">'
-
-            '0.00%p'
-
-            '</span>'
-
-        )
-
-
-
+    
 
 # -------------------------------
-# TOP 금리 상품
+# 은행 시장 현황 분석
 # -------------------------------
-
-
-def get_top_products(
-
-    products,
-
-    count=5
-
-):
-
-
-    result = sorted(
-
-        products,
-
-        key=lambda x:
-
-            x["rate"],
-
-        reverse=True
-
-    )
-
-
-    return result[:count]
-
-
-
-
-# -------------------------------
-# 낮은 금리 상품
-# -------------------------------
-
-
-def get_bottom_products(
-
-    products,
-
-    count=5
-
-):
-
-
-    result = sorted(
-
-        products,
-
-        key=lambda x:
-
-            x["rate"]
-
-    )
-
-
-    return result[:count]
-
-
-
-
-# -------------------------------
-# 특정 금리 이상 검색
-# -------------------------------
-
-
-def filter_over_rate(
-
-    products,
-
-    rate
-
-):
-
-
-    result = []
-
-
-    for item in products:
-
-
-        if item["rate"] >= rate:
-
-
-            result.append(
-
-                item
-
-            )
-
-
-    result.sort(
-
-        key=lambda x:
-
-            x["rate"],
-
-        reverse=True
-
-    )
-
-
-    return result
-
-
-
-
-# -------------------------------
-# 특정 금리 이하 검색
-# -------------------------------
-
-
-def filter_under_rate(
-
-    products,
-
-    rate
-
-):
-
-
-    result = []
-
-
-    for item in products:
-
-
-        if item["rate"] <= rate:
-
-
-            result.append(
-
-                item
-
-            )
-
-
-    result.sort(
-
-        key=lambda x:
-
-            x["rate"],
-
-        reverse=True
-
-    )
-
-
-    return result
-
-
-
-
-# -------------------------------
-# 숫자 추출
-# 예)
-# TOP5
-# 3% 이상
-# 0.5% 높은곳
-# -------------------------------
-
-
-def extract_number(
-
-    text
-
-):
-
-
-    result = re.search(
-
-        r'(\d+\.?\d*)',
-
-        text
-
-    )
-
-
-    if result:
-
-
-        return float(
-
-            result.group(1)
-
-        )
-
-
-    return None
-
-
-
-
-# -------------------------------
-# 금리 차이 조건 추출
-#
-# 예)
-# 대원보다 0.5% 높은곳
-# 우리금융보다 1% 낮은곳
-#
-# return
-# {
-#   type : HIGHER / LOWER,
-#   value : 차이
-# }
-# -------------------------------
-
-
-def extract_rate_condition(
-
-    question
-
-):
-
-
-    q = normalize_question(
-
-        question
-
-    )
-
-
-    value = extract_number(
-
-        q
-
-    )
-
-
-    if value is None:
-
-
-        return None
-
-
-
-    higher = [
-
-        "높",
-
-        "상회",
-
-        "이상",
-
-        "초과",
-
-        "큰"
-
-    ]
-
-
-
-    lower = [
-
-        "낮",
-
-        "하회",
-
-        "미만",
-
-        "작은"
-
-    ]
-
-
-
-    if any(
-
-        x in q
-
-        for x in higher
-
-    ):
-
-
-        return {
-
-
-            "type":
-
-                "HIGHER",
-
-
-            "value":
-
-                value
-
-        }
-
-
-
-    if any(
-
-        x in q
-
-        for x in lower
-
-    ):
-
-
-        return {
-
-
-            "type":
-
-                "LOWER",
-
-
-            "value":
-
-                value
-
-        }
-
-
-
-    return None
-
-
-
-
-# -------------------------------
-# 비교 대상 은행 찾기
-# -------------------------------
-
-
-def find_target_bank(
-
-    question
-
-):
-
-
-    bank = resolve_bank_name(
-
-        question
-
-    )
-
-
-    return bank
-
-
-
-
-# -------------------------------
-# 두 은행 비교
-# -------------------------------
-
-
-def compare_two_banks(
-
-    products,
-
-    bank1,
-
-    bank2
-
-):
-
-
-    bank1_items = find_bank_products(
-
-        products,
-
-        bank1
-
-    )
-
-
-    bank2_items = find_bank_products(
-
-        products,
-
-        bank2
-
-    )
-
-
-    if not bank1_items or not bank2_items:
-
-
-        return None
-
-
-
-    best1 = max(
-
-        bank1_items,
-
-        key=lambda x:
-
-            x["rate"]
-
-    )
-
-
-    best2 = max(
-
-        bank2_items,
-
-        key=lambda x:
-
-            x["rate"]
-
-    )
-
-
-    return {
-
-
-        "bank1":
-
-            best1,
-
-
-        "bank2":
-
-            best2,
-
-
-        "difference":
-
-            round(
-
-                best1["rate"]
-
-                -
-
-                best2["rate"],
-
-                2
-
-            )
-
-    }
-
-
-
-
-# -------------------------------
-# 은행 경쟁력 분석
-# -------------------------------
-
 
 def analyze_bank_status(
-
     products,
-
     bank_name
-
 ):
 
 
-    items = find_bank_products(
+    bank_products = find_bank_products(
 
         products,
 
@@ -1806,22 +1149,63 @@ def analyze_bank_status(
     )
 
 
-    if not items:
-
+    if not bank_products:
 
         return None
 
 
 
-    best = max(
+    bank_products = [
 
-        items,
+        x
+
+        for x in bank_products
+
+        if x["rate"] > 0
+
+    ]
+
+
+
+    if not bank_products:
+
+        return None
+
+
+
+    bank_products.sort(
 
         key=lambda x:
 
-            x["rate"]
+            x["rate"],
+
+        reverse=True
 
     )
+
+
+
+    best = bank_products[0]
+
+
+
+    market_rates = [
+
+        x["rate"]
+
+        for x in products
+
+        if x["rate"] > 0
+
+    ]
+
+
+
+    avg_rate = sum(
+
+        market_rates
+
+    ) / len(market_rates)
 
 
 
@@ -1835,75 +1219,33 @@ def analyze_bank_status(
 
 
 
-    avg_rate = sum(
-
-        x["rate"]
-
-        for x in products
-
-    ) / len(products)
-
-
-
-    gap = round(
-
-        best["rate"]
-
-        -
-
-        avg_rate,
-
-        2
-
-    )
-
-
-
-    bank_best = get_bank_best_rates(
-
-        products
-
-    )
-
-
-
-    bank_best.sort(
-
-        key=lambda x:
-
-            x["rate"],
-
-        reverse=True
-
-    )
-
-
-
-    top10 = bank_best[:10]
-
-
-
-    top10_avg = sum(
-
-        x["rate"]
-
-        for x in top10
-
-    ) / len(top10)
-
-
+    # -------------------------------
+    # 경쟁사 분석
+    # -------------------------------
 
     higher = [
 
         x
 
-        for x in bank_best
+        for x in products
 
-        if x["rate"] > best["rate"]
+        if (
 
-        and normalize(x["bank"])
+            x["rate"]
 
-        != normalize(bank_name)
+            >
+
+            best["rate"]
+
+        )
+
+        and
+
+        normalize(x["bank"])
+
+        !=
+
+        normalize(bank_name)
 
     ]
 
@@ -1913,13 +1255,25 @@ def analyze_bank_status(
 
         x
 
-        for x in bank_best
+        for x in products
 
-        if x["rate"] < best["rate"]
+        if (
 
-        and normalize(x["bank"])
+            x["rate"]
 
-        != normalize(bank_name)
+            <
+
+            best["rate"]
+
+        )
+
+        and
+
+        normalize(x["bank"])
+
+        !=
+
+        normalize(bank_name)
 
     ]
 
@@ -1949,17 +1303,163 @@ def analyze_bank_status(
 
 
 
+    market_position = round(
+
+        (
+
+            rank["rank"]
+
+            /
+
+            rank["total"]
+
+        )
+
+        *
+
+        100,
+
+        1
+
+    )
+
+
+
+        # -------------------------------
+    # 상위 경쟁사 분석 V4.5
+    # -------------------------------
+
+    bank_best_rates = {}
+
+
+    for item in products:
+
+
+        bank = item.get(
+
+            "bank"
+
+        )
+
+
+        rate = item.get(
+
+            "rate",
+
+            0
+
+        )
+
+
+        if not bank:
+
+            continue
+
+
+        if rate <= 0:
+
+            continue
+
+
+
+        if (
+
+            bank not in bank_best_rates
+
+            or rate >
+
+            bank_best_rates[bank]
+
+        ):
+
+
+            bank_best_rates[bank] = rate
+
+
+
+    top10_rates = sorted(
+
+        bank_best_rates.values(),
+
+        reverse=True
+
+    )[:10]
+
+
+
+    if top10_rates:
+
+
+        top10_avg = round(
+
+            sum(top10_rates)
+
+            /
+
+            len(top10_rates),
+
+            2
+
+        )
+
+
+    else:
+
+
+        top10_avg = 0
+
+
+
+    top10_gap = round(
+
+        best["rate"]
+
+        -
+
+        top10_avg,
+
+        2
+
+    )
+
+
+
+    if rank["rank"] <= 10:
+
+
+        position_text = "상위권"
+
+
+    elif rank["rank"] <= 40:
+
+
+        position_text = "중위권"
+
+
+    else:
+
+
+        position_text = "하위권"
+
+
+
     return {
 
 
         "bank":
 
-            best["bank"],
+            bank_name,
 
 
         "product":
 
-            best["product"],
+            best.get(
+
+                "product",
+
+                "-"
+
+            ),
 
 
         "rate":
@@ -1979,33 +1479,37 @@ def analyze_bank_status(
 
         "avg_gap":
 
-            gap,
-
-
-        "top10_avg":
-
-            round(
-
-                top10_avg,
-
-                2
-
-            ),
-
-
-        "top10_gap":
-
             round(
 
                 best["rate"]
 
                 -
 
-                top10_avg,
+                avg_rate,
 
                 2
 
             ),
+
+
+        "market_position":
+
+            market_position,
+
+
+        "position_text":
+
+            position_text,
+
+
+        "top10_avg":
+
+            top10_avg,
+
+
+        "top10_gap":
+
+            top10_gap,
 
 
         "higher":
@@ -2015,19 +1519,503 @@ def analyze_bank_status(
 
         "lower":
 
-            lower,
-
-
-        "position_text":
-
-            f"상위 {round(((rank['total']-rank['rank']+1)/rank['total'])*100,1)}%"
+            lower
 
     }
 
-    # ===================================
-# SBRateBot V4 app.py
-# 3/20
-# ===================================
+
+
+# -------------------------------
+# 금리 증감 표시
+# 대시보드 공통 규칙
+# 상승 : 파란색 + 표시
+# 하락 : 빨간색 ▲ 표시
+# -------------------------------
+
+def format_change(change):
+
+    if change > 0:
+
+        return (
+
+            f'<span class="rate-change increase">'
+
+            f'+{change:.2f}%p'
+
+            f'</span>'
+
+        )
+
+
+    elif change < 0:
+
+        return (
+
+            f'<span class="rate-change decrease">'
+
+            f'▲{abs(change):.2f}%p'
+
+            f'</span>'
+
+        )
+
+
+    else:
+
+        return "0.00%p"
+
+
+
+
+
+def get_top_products(products, count=5):
+
+    return sort_rate_products(
+        products,
+        True
+    )[:count]
+
+
+
+def get_bottom_products(products, count=5):
+
+    return sort_rate_products(
+        products,
+        False
+    )[:count]
+
+
+
+def filter_over_rate(products, rate):
+
+    return [
+        x
+        for x in products
+        if x["rate"] >= rate
+    ]
+
+
+
+def filter_under_rate(products, rate):
+
+    return [
+        x
+        for x in products
+        if x["rate"] <= rate
+    ]
+
+
+
+# -------------------------------
+# 숫자 추출
+# 예)
+# TOP5
+# 0.5%
+# 3%
+# -------------------------------
+
+def extract_number(text):
+
+
+    import re
+
+
+    numbers = re.findall(
+
+        r"\d+\.?\d*",
+
+        str(text)
+
+    )
+
+
+    if not numbers:
+
+        return None
+
+
+    try:
+
+        return float(numbers[0])
+
+
+    except:
+
+        return None
+
+
+
+# -------------------------------
+# 금리 차이 조건 추출 V4.5.1
+# 예)
+# 대원보다 0.5% 높은곳
+# 우리보다 1% 낮은곳
+# -------------------------------
+
+def extract_rate_condition(question):
+
+
+    q = normalize(question)
+
+
+    value = extract_number(question)
+
+
+    if value is None:
+
+        return None
+
+
+
+    if any(
+
+        x in q
+
+        for x in [
+
+            "높",
+
+            "상위",
+
+            "우위",
+
+            "앞서"
+
+        ]
+
+    ):
+
+
+        return {
+
+            "type":
+
+                "HIGHER",
+
+            "value":
+
+                value
+
+        }
+
+
+
+    if any(
+
+        x in q
+
+        for x in [
+
+            "낮",
+
+            "하위",
+
+            "열위",
+
+            "밀리"
+
+        ]
+
+    ):
+
+
+        return {
+
+            "type":
+
+                "LOWER",
+
+            "value":
+
+                value
+
+        }
+
+
+
+    return None
+
+
+
+
+
+# -------------------------------
+# 상품 검색
+# -------------------------------
+
+def search_product_keyword(products, keyword):
+
+
+    keyword = normalize(keyword)
+
+
+    result = []
+
+
+    for item in products:
+
+
+        if (
+
+            keyword in normalize(item["bank"])
+
+            or
+
+            keyword in normalize(item["product"])
+
+        ):
+
+
+            result.append(item)
+
+
+
+    return result
+
+
+
+
+
+# -------------------------------
+# 은행 2개 비교
+# -------------------------------
+
+def compare_two_banks(products, bank1, bank2):
+
+
+    bank1_items = find_bank_products(
+
+        products,
+
+        bank1
+
+    )
+
+
+    bank2_items = find_bank_products(
+
+        products,
+
+        bank2
+
+    )
+
+
+
+    if not bank1_items or not bank2_items:
+
+
+        return None
+
+
+
+    bank1_best = max(
+
+        bank1_items,
+
+        key=lambda x:
+
+            x["rate"]
+
+    )
+
+
+
+    bank2_best = max(
+
+        bank2_items,
+
+        key=lambda x:
+
+            x["rate"]
+
+    )
+
+
+
+    return {
+
+
+        "bank1":
+
+            bank1_best,
+
+
+        "bank2":
+
+            bank2_best,
+
+
+        "difference":
+
+            round(
+
+                bank1_best["rate"]
+
+                -
+
+                bank2_best["rate"],
+
+                2
+
+            )
+
+    }
+
+
+
+# -------------------------------
+# 질문 내 은행명 찾기 V4.3
+# -------------------------------
+
+def find_target_bank(question):
+
+
+    q = normalize(
+        question
+    )
+
+
+    bank_alias = {
+
+
+        "우리금융저축은행":
+            "우리금융저축은행",
+
+        "우리금융":
+            "우리금융저축은행",
+
+
+        "우리저축":
+            "우리금융저축은행",
+
+
+
+        "신한저축은행":
+            "신한저축은행",
+
+        "신한":
+            "신한저축은행",
+
+
+
+        "하나저축은행":
+            "하나저축은행",
+
+        "하나":
+            "하나저축은행",
+
+
+
+        "KB저축은행":
+            "KB저축은행",
+
+        "KB":
+            "KB저축은행",
+
+        "kb":
+            "KB저축은행",
+
+
+
+        "SBI저축은행":
+            "SBI저축은행",
+
+        "SBI":
+            "SBI저축은행",
+
+        "sbi":
+            "SBI저축은행",
+
+
+
+        "OK저축은행":
+            "OK저축은행",
+
+        "OK":
+            "OK저축은행",
+
+        "ok":
+            "OK저축은행",
+
+
+
+        "웰컴저축은행":
+            "웰컴저축은행",
+
+        "웰컴":
+            "웰컴저축은행",
+
+
+
+        "페퍼저축은행":
+            "페퍼저축은행",
+
+        "페퍼":
+            "페퍼저축은행",
+
+
+
+        "모아저축은행":
+            "모아저축은행",
+
+        "모아":
+            "모아저축은행",
+
+
+
+        "한국투자저축은행":
+            "한국투자저축은행",
+
+        "한국투자":
+            "한국투자저축은행",
+
+
+
+        "대원저축은행":
+            "대원저축은행",
+
+        "대원":
+            "대원저축은행"
+
+    }
+
+
+
+    # 긴 이름 먼저 검사
+
+    for key in sorted(
+        bank_alias.keys(),
+        key=len,
+        reverse=True
+    ):
+
+
+        if normalize(key) in q:
+
+            return bank_alias[key]
+
+
+
+    return None
+
+# -------------------------------
+# 메인 페이지
+# -------------------------------
+
+
+@app.route("/")
+
+def index():
+
+
+    return render_template(
+
+        "index.html"
+
+    )
+
+
 
 
 # -------------------------------
@@ -2061,6 +2049,7 @@ def api_kpi():
         if x["rate"] > 0
 
     ]
+    
 
 
 
@@ -2158,7 +2147,6 @@ def api_woori():
     )
 
 
-
     products = [
 
         x
@@ -2169,6 +2157,7 @@ def api_woori():
 
     ]
 
+    
 
 
     if not products:
@@ -2176,9 +2165,11 @@ def api_woori():
 
         return jsonify({
 
+
             "bank":
 
                 "우리금융저축은행"
+
 
         })
 
@@ -2191,7 +2182,6 @@ def api_woori():
         "우리금융저축은행"
 
     )
-
 
 
     if not woori_products:
@@ -2219,7 +2209,6 @@ def api_woori():
 
 
 
-
     # -------------------------------
     # 시장 순위
     # -------------------------------
@@ -2232,7 +2221,6 @@ def api_woori():
         woori["bank"]
 
     )
-
 
 
 
@@ -2271,7 +2259,6 @@ def api_woori():
 
 
 
-
     # -------------------------------
     # 금융지주 순위
     # -------------------------------
@@ -2291,7 +2278,6 @@ def api_woori():
             bank
 
         )
-
 
 
         if items:
@@ -2345,7 +2331,6 @@ def api_woori():
 
 
 
-
     return jsonify({
 
 
@@ -2385,31 +2370,27 @@ def api_woori():
 
 
 
+        # 평균금리 대비
+
         "average_gap":
 
             round(
 
-                woori["rate"]
-
-                -
-
-                avg_rate,
+                woori["rate"] - avg_rate,
 
                 2
 
             ),
 
 
+
+        # 최고금리 대비
 
         "highest_gap":
 
             round(
 
-                woori["rate"]
-
-                -
-
-                highest_rate,
+                woori["rate"] - highest_rate,
 
                 2
 
@@ -2417,15 +2398,13 @@ def api_woori():
 
 
 
+        # 최저금리 대비
+
         "lowest_gap":
 
             round(
 
-                woori["rate"]
-
-                -
-
-                lowest_rate,
+                woori["rate"] - lowest_rate,
 
                 2
 
@@ -2433,13 +2412,7 @@ def api_woori():
 
     })
 
-    # ===================================
-# SBRateBot V4 app.py
-# 4/20
-# ===================================
-
-
-# -------------------------------
+    # -------------------------------
 # 시장 TOP10
 # -------------------------------
 
@@ -2460,13 +2433,11 @@ def api_rates():
     )
 
 
-
     bank_best = get_bank_best_rates(
 
         products
 
     )
-
 
 
     bank_best = [
@@ -2485,7 +2456,7 @@ def api_rates():
 
         key=lambda x:
 
-            x["rate"],
+        x["rate"],
 
         reverse=True
 
@@ -2589,7 +2560,7 @@ def api_financial():
 
                 key=lambda x:
 
-                    x["rate"]
+                x["rate"]
 
             )
 
@@ -2602,7 +2573,7 @@ def api_financial():
 
         key=lambda x:
 
-            x["rate"],
+        x["rate"],
 
         reverse=True
 
@@ -2623,91 +2594,58 @@ def api_financial():
     ):
 
 
-        response.append({
-
+                response.append({
 
             "rank":
-
                 idx,
 
 
-
             "bank":
-
                 item["bank"],
 
 
-
             "product":
-
                 item["product"],
 
 
-
             "rate":
-
                 item["rate"],
-
-
-
-            "change":
-
-                item["change"],
-
 
 
             # -------------------------------
             # 금리 증감 표시
-            # 상승 : 파란색 +
-            # 하락 : 빨간색 ▲
+            # 상승 : 파란색
+            # 하락 : 빨간색
             # -------------------------------
+
+            "change":
+                item["change"],
 
 
             "change_html":
 
-
                 (
-
                     '<span class="rate-change increase">'
-
                     f'+{item["change"]:.2f}%p'
-
                     '</span>'
 
-                )
+                    if item["change"] > 0
 
+                    else
 
-                if item["change"] > 0
+                    (
+                        '<span class="rate-change decrease">'
+                        f'▲{abs(item["change"]):.2f}%p'
+                        '</span>'
+                    )
 
+                    if item["change"] < 0
 
-                else
-
-
-                (
-
-                    '<span class="rate-change decrease">'
-
-                    f'▲{abs(item["change"]):.2f}%p'
-
-                    '</span>'
-
-                )
-
-
-                if item["change"] < 0
-
-
-                else
-
-
-                (
+                    else
 
                     '<span class="rate-change">'
-
                     '0.00%p'
-
                     '</span>'
-
                 )
 
         })
@@ -2774,35 +2712,20 @@ def api_products():
 
     return jsonify(products)
 
-# ===================================
-# SBRateBot V4 app.py
-# 5/20
-# ===================================
-
-
 # -------------------------------
 # AI 시장 요약
 # -------------------------------
 
-
 @app.route("/api/ai")
-
 def api_ai():
-
 
     try:
 
-
         with open(
-
             DATA_FILE,
-
             "r",
-
             encoding="utf-8"
-
         ) as f:
-
 
             products = json.load(f)
 
@@ -2810,19 +2733,14 @@ def api_ai():
 
         if isinstance(products, dict):
 
-
             products = products.get(
-
                 "REC",
-
                 []
-
             )
 
 
 
         if not products:
-
 
             return jsonify({
 
@@ -2833,7 +2751,6 @@ def api_ai():
                 ]
 
             })
-
 
 
 
@@ -2851,50 +2768,30 @@ def api_ai():
 
                     str(
 
-                        item.get(
+                        item.get("top_12m")
 
-                            "top_12m"
-
-                        )
-
-                        or item.get(
-
-                            "rate"
-
-                        )
+                        or item.get("rate")
 
                         or 0
 
                     )
-
                     .replace(
-
                         ",",
-
                         ""
-
                     )
 
                 )
 
 
-
                 if rate > 0:
-
 
                     item["rate"] = rate
 
-
-                    rate_products.append(
-
-                        item
-
-                    )
+                    rate_products.append(item)
 
 
 
             except:
-
 
                 continue
 
@@ -2919,9 +2816,7 @@ def api_ai():
 
         rate_products.sort(
 
-            key=lambda x:
-
-                x["rate"],
+            key=lambda x:x["rate"],
 
             reverse=True
 
@@ -2930,12 +2825,7 @@ def api_ai():
 
 
 
-        total = len(
-
-            rate_products
-
-        )
-
+        total = len(rate_products)
 
 
 
@@ -2952,12 +2842,7 @@ def api_ai():
 
         highest = rate_products[0]
 
-
-
         lowest = rate_products[-1]
-
-
-
 
         highest_gap = (
 
@@ -2968,7 +2853,6 @@ def api_ai():
             avg_rate
 
         )
-
 
 
         lowest_gap = (
@@ -2982,10 +2866,7 @@ def api_ai():
         )
 
 
-
-
         if highest_gap >= 0:
-
 
             highest_gap_text = (
 
@@ -2993,9 +2874,7 @@ def api_ai():
 
             )
 
-
         else:
-
 
             highest_gap_text = (
 
@@ -3004,10 +2883,7 @@ def api_ai():
             )
 
 
-
-
         if lowest_gap < 0:
-
 
             lowest_gap_text = (
 
@@ -3015,16 +2891,13 @@ def api_ai():
 
             )
 
-
         else:
-
 
             lowest_gap_text = (
 
                 f"+{lowest_gap:.2f}%p"
 
             )
-
 
 
 
@@ -3037,7 +2910,6 @@ def api_ai():
             lowest["rate"]
 
         )
-
 
 
 
@@ -3099,10 +2971,7 @@ def api_ai():
 
         )
 
-        # ===================================
-# SBRateBot V4 app.py
-# 6/20
-# ===================================
+
 
 
         if spread >= 0.5:
@@ -3159,9 +3028,7 @@ def api_ai():
 
         return jsonify({
 
-            "summary":
-
-                summary
+            "summary":summary
 
         })
 
@@ -3191,8 +3058,6 @@ def api_ai():
         })
 
 
-
-
 # -------------------------------
 # AI 검색 V4.1
 # Python Intent + Gemini 분리
@@ -3200,21 +3065,14 @@ def api_ai():
 
 
 @app.route(
-
     "/api/ai/search",
-
     methods=["POST"]
-
 )
-
 def ai_search():
-
 
     try:
 
-
         data = request.json
-
 
 
         question = str(
@@ -3231,7 +3089,6 @@ def ai_search():
 
 
 
-
         if not question:
 
 
@@ -3245,7 +3102,6 @@ def ai_search():
 
 
 
-
         q = normalize(
 
             question
@@ -3254,18 +3110,15 @@ def ai_search():
 
 
 
-
         # -------------------------------
         # AI Intent 판단 V4.5
         # -------------------------------
-
 
         intent = detect_intent(
 
             question
 
         )
-
 
 
         print(
@@ -3276,76 +3129,45 @@ def ai_search():
 
         )
 
-
-
-
         # -------------------------------
         # 은행명 자동 인식
         # -------------------------------
 
-
-        target_bank = resolve_bank_name(
-
-            question
-
-        )
-
+        target_bank = resolve_bank_name(question)
 
 
         print(
-
             "TARGET BANK:",
-
             target_bank
-
         )
-
-
-
 
         # -------------------------------
         # 검색 기간 선택
         # 기본 12개월
         # -------------------------------
 
-
         search_period = "12개월"
-
 
 
         if "1개월" in question:
 
-
             search_period = "1개월"
-
-
 
         elif "3개월" in question:
 
-
             search_period = "3개월"
-
-
 
         elif "6개월" in question:
 
-
             search_period = "6개월"
-
-
 
         elif "24개월" in question:
 
-
             search_period = "24개월"
-
-
 
         elif "36개월" in question:
 
-
             search_period = "36개월"
-
 
 
 
@@ -3371,20 +3193,14 @@ def ai_search():
 
         ]
 
-
-
-
-        # -------------------------------
+                # -------------------------------
         # 은행 시장 분석
         # -------------------------------
-
 
         bank_analysis = None
 
 
-
         if target_bank:
-
 
             bank_analysis = analyze_bank_status(
 
@@ -3394,13 +3210,9 @@ def ai_search():
 
             )
 
-# ===================================
-# SBRateBot V4 app.py
-# 7/20
-# ===================================
 
 
-        # -------------------------------
+                # -------------------------------
         # 금리 차이 조건 검색 V4.5.2
         #
         # 예)
@@ -3424,12 +3236,7 @@ def ai_search():
         )
 
 
-
         condition_answer = None
-
-        
-        answer = ""
-
 
 
 
@@ -3444,7 +3251,6 @@ def ai_search():
         ):
 
 
-
             target_products = find_bank_products(
 
                 products,
@@ -3454,9 +3260,7 @@ def ai_search():
             )
 
 
-
             if target_products:
-
 
 
                 base_rate = max(
@@ -3468,7 +3272,6 @@ def ai_search():
                 )
 
 
-
                 bank_best_rates = get_bank_best_rates(
 
                     products
@@ -3477,9 +3280,7 @@ def ai_search():
 
 
 
-
                 if rate_condition["type"] == "HIGHER":
-
 
 
                     target_rate = (
@@ -3491,7 +3292,6 @@ def ai_search():
                         rate_condition["value"]
 
                     )
-
 
 
                     candidates = [
@@ -3521,7 +3321,6 @@ def ai_search():
                     ]
 
 
-
                     candidates.sort(
 
                         key=lambda x:
@@ -3533,27 +3332,20 @@ def ai_search():
                     )
 
 
-
                     condition_answer = (
-
 
                         f"📈 {target_bank} 대비 "
 
                         f"{rate_condition['value']:.2f}%p 이상 높은 은행\n\n"
 
-
                         f"기준금리 : {base_rate:.2f}%\n"
 
                         f"조건금리 : {target_rate:.2f}% 이상\n\n"
 
-
                     )
 
 
-
-
                     if candidates:
-
 
 
                         for idx,item in enumerate(
@@ -3563,7 +3355,6 @@ def ai_search():
                             start=1
 
                         ):
-
 
 
                             diff = round(
@@ -3579,7 +3370,6 @@ def ai_search():
                             )
 
 
-
                             diff_text = (
 
                                 f'<span class="rate-change increase">'
@@ -3591,9 +3381,7 @@ def ai_search():
                             )
 
 
-
                             condition_answer += (
-
 
                                 f"{idx}. "
 
@@ -3603,13 +3391,10 @@ def ai_search():
 
                                 f"({diff_text})\n"
 
-
                             )
 
 
-
                     else:
-
 
 
                         condition_answer += (
@@ -3621,9 +3406,7 @@ def ai_search():
 
 
 
-
                 elif rate_condition["type"] == "LOWER":
-
 
 
                     target_rate = (
@@ -3635,7 +3418,6 @@ def ai_search():
                         rate_condition["value"]
 
                     )
-
 
 
                     candidates = [
@@ -3665,7 +3447,6 @@ def ai_search():
                     ]
 
 
-
                     candidates.sort(
 
                         key=lambda x:
@@ -3677,27 +3458,20 @@ def ai_search():
                     )
 
 
-
                     condition_answer = (
-
 
                         f"📉 {target_bank} 대비 "
 
                         f"{rate_condition['value']:.2f}%p 이상 낮은 은행\n\n"
 
-
                         f"기준금리 : {base_rate:.2f}%\n"
 
                         f"조건금리 : {target_rate:.2f}% 이하\n\n"
 
-
                     )
 
 
-
-
                     if candidates:
-
 
 
                         for idx,item in enumerate(
@@ -3707,7 +3481,6 @@ def ai_search():
                             start=1
 
                         ):
-
 
 
                             diff = round(
@@ -3723,7 +3496,6 @@ def ai_search():
                             )
 
 
-
                             diff_text = (
 
                                 f'<span class="rate-change decrease">'
@@ -3735,9 +3507,7 @@ def ai_search():
                             )
 
 
-
                             condition_answer += (
-
 
                                 f"{idx}. "
 
@@ -3747,13 +3517,10 @@ def ai_search():
 
                                 f"({diff_text})\n"
 
-
                             )
 
 
-
                     else:
-
 
 
                         condition_answer += (
@@ -3762,23 +3529,14 @@ def ai_search():
 
                         )
 
-                        # ===================================
-# SBRateBot V4 app.py
-# 8/20
-# ===================================
-
 
         # -------------------------------
         # 금리 차이 조건 검색 결과 우선 적용 V4.5.1
         # -------------------------------
 
-
         if condition_answer:
 
-
             answer = condition_answer
-
-
 
 
 
@@ -3786,467 +3544,297 @@ def ai_search():
         # 우리금융 경쟁력 우선 처리 V4.5
         # -------------------------------
 
-
         elif (
-
 
             not condition_answer
 
-
             and
-
 
             intent == "COMPETITIVENESS"
 
-
             and
-
 
             (
 
-
                 "우리금융"
 
-
                 in question
-
 
                 or
 
-
                 "우리금융저축은행"
-
 
                 in question
 
-
             )
-
 
         ):
 
 
-
             if bank_analysis:
-
 
 
                 gap = bank_analysis["avg_gap"]
 
 
 
-
-
                 if gap > 0:
-
-
 
                     gap_text = (
 
-
                         f'<span class="rate-change increase">'
-
 
                         f'+{gap:.2f}%p'
 
-
                         f'</span>'
 
-
                     )
-
 
 
                     evaluation = (
 
-
                         "시장 평균 대비 높은 금리로 "
-
 
                         "금리 경쟁력이 양호합니다."
 
-
                     )
-
-
 
 
                 elif gap < 0:
 
-
-
                     gap_text = (
-
 
                         f'<span class="rate-change decrease">'
 
-
                         f'▲{abs(gap):.2f}%p'
-
 
                         f'</span>'
 
-
                     )
-
 
 
                     evaluation = (
 
-
                         "시장 평균 대비 낮은 금리로 "
-
 
                         "금리 경쟁력 개선이 필요합니다."
 
-
                     )
-
-
 
 
                 else:
 
-
-
                     gap_text = "0.00%p"
-
 
 
                     evaluation = (
 
-
                         "시장 평균 수준의 금리입니다."
 
-
                     )
-
-
 
 
 
                 answer = (
 
-
                     "🏦 우리금융저축은행 경쟁력 분석\n\n"
-
 
                     f"기준기간 : {search_period}\n\n"
 
-
                     f"현재금리 : {bank_analysis['rate']:.2f}%\n\n"
-
 
                     f"시장순위 : "
 
-
                     f"{bank_analysis['rank']}위 / "
-
 
                     f"{bank_analysis['total']}개사\n\n"
 
-
                     f"평균금리 대비 : "
-
 
                     f"{gap_text}\n\n"
 
-
                     f"평가 : {evaluation}"
-
 
                 )
 
-                # ===================================
-# SBRateBot V4 app.py
-# 9/20
-# ===================================
-
+        
 
         # -------------------------------
         # 전체 시장현황 검색
         # -------------------------------
 
-
         if (
-
 
             not bank_analysis
 
-
             and
-
 
             any(
 
-
                 x in question
-
 
                 for x in [
 
-
                     "시장현황",
-
 
                     "시장 현황",
 
-
                     "시장상황",
-
 
                     "금리 상황",
 
-
                     "금리현황",
-
 
                     "금리 현황"
 
-
                 ]
 
-
             )
-
 
         ):
 
 
-
             highest = max(
-
 
                 products,
 
-
                 key=lambda x:
-
 
                     x["rate"]
 
-
             )
-
 
 
             lowest = min(
 
-
                 products,
-
 
                 key=lambda x:
 
-
                     x["rate"]
-
 
             )
 
 
-
             avg_rate = sum(
-
 
                 x["rate"]
 
-
                 for x in products
-
 
             ) / len(products)
 
 
 
-
-
             spread = (
-
 
                 highest["rate"]
 
-
                 -
-
 
                 lowest["rate"]
 
-
             )
-
-
-
 
 
             highest_gap = (
 
-
                 highest["rate"]
-
 
                 -
 
-
                 avg_rate
 
-
             )
-
-
-
 
 
             lowest_gap = (
 
-
                 lowest["rate"]
-
 
                 -
 
-
                 avg_rate
 
-
             )
-
-
 
 
 
             if highest_gap >= 0:
 
-
-
                 highest_gap_text = (
-
-
 
                     f'<span class="rate-change increase">'
 
-
                     f'+{highest_gap:.2f}%p'
-
 
                     f'</span>'
 
-
                 )
-
-
 
             else:
 
-
-
                 highest_gap_text = (
-
-
 
                     f'<span class="rate-change decrease">'
 
-
                     f'▲{abs(highest_gap):.2f}%p'
-
 
                     f'</span>'
 
-
                 )
-
-
 
 
 
             if lowest_gap < 0:
 
-
-
                 lowest_gap_text = (
-
-
 
                     f'<span class="rate-change decrease">'
 
-
                     f'▲{abs(lowest_gap):.2f}%p'
-
 
                     f'</span>'
 
-
                 )
-
-
 
             else:
 
-
-
                 lowest_gap_text = (
-
-
 
                     f'<span class="rate-change increase">'
 
-
                     f'+{lowest_gap:.2f}%p'
-
 
                     f'</span>'
 
-
                 )
-
-
 
 
 
             answer = (
 
-
-
                 f"■ 정기예금 시장현황\n\n"
-
-
 
                 f"기준기간 : {search_period}\n\n"
 
-
-
                 f"상품 수 : {len(products)}개\n\n"
-
-
 
                 f"최고금리 : {highest['rate']:.2f}%\n"
 
-
                 f"최고상품 : {highest['bank']} / {highest['product']}\n\n"
-
-
 
                 f"평균금리 : {avg_rate:.2f}%\n\n"
 
-
-
                 f"최저금리 : {lowest['rate']:.2f}%\n"
-
 
                 f"최저상품 : {lowest['bank']} / {lowest['product']}\n\n"
 
-
-
                 f"최고금리-평균금리 : {highest_gap_text}<br>"
-
 
                 f"최저금리-평균금리 : {lowest_gap_text}"
 
-
-
             )
-
-
 
 
 
@@ -4254,132 +3842,86 @@ def ai_search():
         # 은행 시장현황 검색
         # -------------------------------
 
-
         if (
-
 
             bank_analysis
 
-
             and
-
 
             any(
 
-
                 x in question
-
 
                 for x in [
 
-
                     "시장현황",
-
 
                     "현황",
 
-
                     "상황",
-
 
                     "시장",
 
-
                     "순위",
-
 
                 ]
 
-
             )
 
-
         ):
-
 
 
             gap = bank_analysis["avg_gap"]
 
 
 
-
-
             if gap > 0:
-
-
 
                 gap_text = (
 
-
                     f'<span class="rate-change increase">'
-
 
                     f'+{gap:.2f}%p'
 
-
                     f'</span>'
 
-
                 )
-
 
 
             elif gap < 0:
 
-
-
                 gap_text = (
-
 
                     f'<span class="rate-change decrease">'
 
-
                     f'▲{abs(gap):.2f}%p'
 
-
                     f'</span>'
-
 
                 )
 
 
-
             else:
-
-
 
                 gap_text = "0.00%p"
 
-# ===================================
-# SBRateBot V4 app.py
-# 10/20
-# ===================================
 
 
             answer = (
 
-
                 f"■ {bank_analysis['bank']} 시장현황\n\n"
-
 
                 f"기준기간 : {search_period}\n\n"
 
-
                 f"대표상품 : {bank_analysis['product']}\n"
-
 
                 f"현재금리 : {bank_analysis['rate']:.2f}%\n\n"
 
-
                 f"시장순위 : {bank_analysis['rank']}위 / {bank_analysis['total']}개\n"
-
 
                 f"평균금리 대비 : {gap_text}"
 
-
             )
-
-
 
 
 
@@ -4387,371 +3929,226 @@ def ai_search():
         # 은행 경쟁력 분석
         # -------------------------------
 
-
         elif (
-
 
             not condition_answer
 
-
             and
-
-
+            
             bank_analysis
 
-
             and
-
 
             any(
 
-
                 x in question
-
 
                 for x in [
 
-
                     "경쟁력",
-
 
                     "경쟁",
 
-
                     "비교",
-
 
                     "어때",
 
-
                     "괜찮",
-
 
                     "괜찮아",
 
-
                     "평가",
-
 
                     "위치"
 
-
                 ]
-
 
             )
 
-
         ):
-
 
 
             gap = bank_analysis["avg_gap"]
 
 
 
-
-
             if gap > 0:
-
-
 
                 gap_text = (
 
-
                     f'<span class="rate-change increase">'
-
 
                     f'+{gap:.2f}%p'
 
-
                     f'</span>'
 
-
                 )
-
 
 
                 evaluation = (
 
-
                     "시장 평균 대비 높은 금리로 "
-
 
                     "금리 경쟁력이 양호합니다."
 
-
                 )
-
-
-
 
 
             elif gap < 0:
 
-
-
                 gap_text = (
-
 
                     f'<span class="rate-change decrease">'
 
-
                     f'▲{abs(gap):.2f}%p'
-
 
                     f'</span>'
 
-
                 )
-
 
 
                 evaluation = (
 
-
                     "시장 평균 대비 낮은 금리로 "
-
 
                     "금리 경쟁력 개선이 필요합니다."
 
-
                 )
-
-
-
 
 
             else:
 
-
-
                 gap_text = "0.00%p"
-
 
 
                 evaluation = (
 
-
                     "시장 평균 수준입니다."
 
+                )
+
+
+
+                answer = (
+
+                    f"■ {bank_analysis['bank']} 경쟁력 분석\n\n"
+
+                    f"기준기간 : {search_period}\n\n"
+
+                    f"현재금리 : {bank_analysis['rate']:.2f}%\n\n"
+
+                    f"시장순위 : "
+
+                    f"{bank_analysis['rank']}위 / "
+
+                    f"{bank_analysis['total']}개사\n\n"
+
+                    f"시장 위치 : "
+
+                    f"{bank_analysis['position_text']}\n\n"
+
+                    f"평균금리 대비 : "
+
+                    f"{gap_text}\n\n"
+
+                    f"TOP10 평균금리 : "
+
+                    f"{bank_analysis['top10_avg']:.2f}%\n\n"
+
+                    f"TOP10 대비 : "
+
+                    f"{format_change(bank_analysis['top10_gap'])}\n\n"
+
+                    f"평가 : "
+
+                    f"{evaluation}"
 
                 )
 
 
 
-
-
-            answer = (
-
-
-                f"■ {bank_analysis['bank']} 경쟁력 분석\n\n"
-
-
-                f"기준기간 : {search_period}\n\n"
-
-
-                f"현재금리 : {bank_analysis['rate']:.2f}%\n\n"
-
-
-                f"시장순위 : "
-
-
-                f"{bank_analysis['rank']}위 / "
-
-
-                f"{bank_analysis['total']}개사\n\n"
-
-
-                f"시장 위치 : "
-
-
-                f"{bank_analysis['position_text']}\n\n"
-
-
-                f"평균금리 대비 : "
-
-
-                f"{gap_text}\n\n"
-
-
-                f"TOP10 평균금리 : "
-
-
-                f"{bank_analysis['top10_avg']:.2f}%\n\n"
-
-
-                f"TOP10 대비 : "
-
-
-                f"{format_change(bank_analysis['top10_gap'])}\n\n"
-
-
-                f"평가 : "
-
-
-                f"{evaluation}"
-
-
-            )
-
-
-
-
-
-            # -------------------------------
-            # 경쟁사 비교 TOP5 추가
-            # -------------------------------
-
-
-            if bank_analysis.get("higher"):
-
-
-
-                answer += (
-
-
-                    "\n\n📈 "
-
-
-                    f"{bank_analysis['bank']}보다 높은 금리 TOP5\n\n"
-
-
-                )
-
-
-
-                for item in bank_analysis["higher"][:5]:
-
-
-
-                    diff = round(
-
-
-                        item["rate"]
-
-
-                        -
-
-
-                        bank_analysis["rate"],
-
-
-                        2
-
-
-                    )
-
-
-
-                    diff_text = (
-
-
-                        f'<span class="rate-change increase">'
-
-
-                        f'+{diff:.2f}%p'
-
-
-                        f'</span>'
-
-
-                    )
-
+                # -------------------------------
+                # 경쟁사 비교 TOP5 추가
+                # -------------------------------
+
+                if bank_analysis.get("higher"):
 
 
                     answer += (
 
+                        "\n\n📈 "
 
-                        f"{item['bank']} "
-
-
-                        f"{item['rate']:.2f}% "
-
-
-                        f"({diff_text})<br>"
-
+                        f"{bank_analysis['bank']}보다 높은 금리 TOP5\n\n"
 
                     )
 
 
+                    for item in bank_analysis["higher"][:5]:
+
+
+                        diff = round(
+
+                            item["rate"]
+
+                            -
+
+                            bank_analysis["rate"],
+
+                            2
+
+                        )
+
+
+                        answer += (
+
+                            f"{item['bank']} "
+
+                            f"{item['rate']:.2f}% "
+
+                            f"(+{diff:.2f}%p)\n"
+
+                        )
 
 
 
-            if bank_analysis.get("lower"):
-
-
-
-                answer += (
-
-
-                    "\n\n📉 "
-
-
-                    f"{bank_analysis['bank']}보다 낮은 금리 TOP5\n\n"
-
-
-                )
-
-
-
-                for item in bank_analysis["lower"][:5]:
-
-
-
-                    diff = round(
-
-
-                        bank_analysis["rate"]
-
-
-                        -
-
-
-                        item["rate"],
-
-
-                        2
-
-
-                    )
-
-
-
-                    diff_text = (
-
-
-                        f'<span class="rate-change decrease">'
-
-
-                        f'▲{diff:.2f}%p'
-
-
-                        f'</span>'
-
-
-                    )
-
+                if bank_analysis.get("lower"):
 
 
                     answer += (
 
+                        "\n\n📉 "
 
-                        f"{item['bank']} "
-
-
-                        f"{item['rate']:.2f}% "
-
-
-                        f"({diff_text})<br>"
-
+                        f"{bank_analysis['bank']}보다 낮은 금리 TOP5\n\n"
 
                     )
 
-                    # ===================================
-# SBRateBot V4 app.py
-# 11/20
-# ===================================
+
+                    for item in bank_analysis["lower"][:5]:
+
+
+                        diff = round(
+
+                            bank_analysis["rate"]
+
+                            -
+
+                            item["rate"],
+
+                            2
+
+                        )
+
+
+                        answer += (
+
+                            f"{item['bank']} "
+
+                            f"{item['rate']:.2f}% "
+
+                            f"(▲{diff:.2f}%p)\n"
+
+                        )
+
 
 
         # -------------------------------
@@ -4761,84 +4158,56 @@ def ai_search():
 
         elif any(
 
-
             x in question
-
 
             for x in [
 
-
                 "최고금리",
-
 
                 "최고 금리",
 
-
                 "가장 높은",
-
 
                 "높은 금리"
 
-
             ]
-
 
         ):
 
 
-
             item = max(
-
 
                 products,
 
-
                 key=lambda x:
-
 
                     x["rate"]
 
-
             )
-
 
 
             rank = get_market_bank_rank(
 
-
                 products,
-
 
                 item["bank"]
 
-
             )
-
 
 
             answer = (
 
-
                 f"📈 {search_period} 최고금리\n\n"
-
-
 
                 f"은행 : {item['bank']}\n"
 
-
                 f"상품 : {item['product']}\n"
-
 
                 f"최고금리 : {item['rate']:.2f}%\n"
 
-
                 f"시장순위 : {rank['rank']}위 / {rank['total']}개사"
 
-
-
             )
-
-
 
 
 
@@ -4850,84 +4219,56 @@ def ai_search():
 
         elif any(
 
-
             x in question
-
 
             for x in [
 
-
                 "최저금리",
-
 
                 "최저 금리",
 
-
                 "가장 낮은",
-
 
                 "낮은 금리"
 
-
             ]
-
 
         ):
 
 
-
             item = min(
-
 
                 products,
 
-
                 key=lambda x:
-
 
                     x["rate"]
 
-
             )
-
 
 
             rank = get_market_bank_rank(
 
-
                 products,
-
 
                 item["bank"]
 
-
             )
-
 
 
             answer = (
 
-
                 f"📉 {search_period} 최저금리\n\n"
-
-
 
                 f"은행 : {item['bank']}\n"
 
-
                 f"상품 : {item['product']}\n"
-
 
                 f"최저금리 : {item['rate']:.2f}%\n"
 
-
                 f"시장순위 : {rank['rank']}위 / {rank['total']}개사"
 
-
-
             )
-
-
 
 
 
@@ -4939,55 +4280,37 @@ def ai_search():
 
         elif (
 
-
             "TOP"
-
 
             in question.upper()
 
-
-
             or
-
-
 
             "상위"
 
-
             in question
-
 
         ):
 
 
-
             count = extract_number(
 
-
                 question
-
 
             )
 
 
-
             if not count:
-
 
                 count = 5
 
 
 
-
-
             items = get_top_products(
-
 
                 products,
 
-
                 int(count)
-
 
             )
 
@@ -4995,48 +4318,32 @@ def ai_search():
 
             answer = (
 
-
                 f"🏆 {search_period} 금리 TOP {int(count)}\n\n"
-
 
             )
 
 
-
             for idx,item in enumerate(
-
 
                 items,
 
-
                 start=1
-
 
             ):
 
 
-
                 answer += (
-
 
                     f"{idx}. "
 
-
                     f"{item['bank']} "
-
 
                     f"{item['product']} "
 
-
                     f"{item['rate']:.2f}%\n"
-
 
                 )
 
-                # ===================================
-# SBRateBot V4 app.py
-# 12/20
-# ===================================
 
 
         # -------------------------------
@@ -5046,55 +4353,37 @@ def ai_search():
 
         elif (
 
-
             "하위"
 
-
             in question
-
-
 
             or
 
-
-
             "낮은순"
 
-
             in question
-
 
         ):
 
 
-
             count = extract_number(
 
-
                 question
-
 
             )
 
 
-
             if not count:
-
 
                 count = 5
 
 
 
-
-
             items = get_bottom_products(
-
 
                 products,
 
-
                 int(count)
-
 
             )
 
@@ -5102,106 +4391,68 @@ def ai_search():
 
             answer = (
 
-
                 f"📉 {search_period} 낮은 금리 TOP {int(count)}\n\n"
 
-
             )
-
 
 
             for idx,item in enumerate(
 
-
                 items,
 
-
                 start=1
-
 
             ):
 
 
-
                 answer += (
-
 
                     f"{idx}. "
 
-
                     f"{item['bank']} "
-
 
                     f"{item['product']} "
 
-
                     f"{item['rate']:.2f}%\n"
 
-
                 )
-
-
-
-
-
-        # -------------------------------
+                        # -------------------------------
         # 금리 이상 검색
         # 예) 3% 이상
         # -------------------------------
 
-
         elif (
-
 
             "이상"
 
-
             in question
 
-
-
-            and
-
-
-
-            extract_number(question)
-
+            and extract_number(question)
 
         ):
 
 
-
             rate = extract_number(
-
 
                 question
 
-
             )
-
 
 
             items = filter_over_rate(
 
-
                 products,
-
 
                 rate
 
-
             )
-
 
 
             answer = (
 
-
                 f"📌 {search_period} {rate}% 이상 상품\n\n"
 
-
             )
-
 
 
             for item in items[:10]:
@@ -5209,19 +4460,13 @@ def ai_search():
 
                 answer += (
 
-
                     f"{item['bank']} "
-
 
                     f"{item['product']} "
 
-
                     f"{item['rate']:.2f}%\n"
 
-
                 )
-
-
 
 
 
@@ -5230,59 +4475,38 @@ def ai_search():
         # 예) 3% 이하
         # -------------------------------
 
-
         elif (
-
 
             "이하"
 
-
             in question
 
-
-
-            and
-
-
-
-            extract_number(question)
-
+            and extract_number(question)
 
         ):
 
 
-
             rate = extract_number(
-
 
                 question
 
-
             )
-
 
 
             items = filter_under_rate(
 
-
                 products,
-
 
                 rate
 
-
             )
-
 
 
             answer = (
 
-
                 f"📌 {search_period} {rate}% 이하 상품\n\n"
 
-
             )
-
 
 
             for item in items[:10]:
@@ -5290,19 +4514,13 @@ def ai_search():
 
                 answer += (
 
-
                     f"{item['bank']} "
-
 
                     f"{item['product']} "
 
-
                     f"{item['rate']:.2f}%\n"
 
-
                 )
-
-
 
 
 
@@ -5311,56 +4529,38 @@ def ai_search():
         # 예) KB vs 신한
         # -------------------------------
 
-
         elif (
-
 
             "vs"
 
-
             in q
-
-
 
             or
 
-
-
             "비교"
-
 
             in question
 
-
         ):
-
 
 
             banks = []
 
 
-
             for bank in FINANCIAL_BANKS + [
-
 
                 "KB저축은행",
 
-
                 "신한저축은행",
-
 
                 "SBI저축은행",
 
-
                 "OK저축은행"
-
 
             ]:
 
 
-
                 if normalize(bank) in q:
-
 
                     banks.append(bank)
 
@@ -5369,745 +4569,375 @@ def ai_search():
             if len(banks) >= 2:
 
 
-
                 result = compare_two_banks(
-
 
                     products,
 
-
                     banks[0],
-
 
                     banks[1]
 
-
                 )
-
 
 
                 if result:
 
 
-
                     answer = (
-
 
                         "⚖️ 은행 비교\n\n"
 
-
                         f"{banks[0]}\n"
-
 
                         f"금리 : {result['bank1']['rate']:.2f}%\n\n"
 
-
                         f"{banks[1]}\n"
-
 
                         f"금리 : {result['bank2']['rate']:.2f}%\n\n"
 
-
                         f"차이 : "
-
 
                         f"{result['difference']:.2f}%p"
 
+                    )
+
+
+
+                # -------------------------------
+        # 우리금융 자연어 경쟁력 분석 V4.6
+        # -------------------------------
+
+        elif (
+
+            not condition_answer
+
+            and resolve_bank_name(question) == "우리금융"
+
+            and intent == "COMPETITIVENESS"
+
+        ):
+
+            woori_items = find_bank_products(
+
+                products,
+
+                "우리금융저축은행"
+
+            )
+
+            if woori_items:
+
+                woori_best = max(
+
+                    woori_items,
+
+                    key=lambda x: x["rate"]
+
+                )
+
+                rank = get_market_bank_rank(
+
+                    products,
+
+                    woori_best["bank"]
+
+                )
+
+                avg_rate = sum(
+
+                    x["rate"]
+
+                    for x in products
+
+                ) / len(products)
+
+                bank_best_rates = get_bank_best_rates(
+
+                    products
+
+                )
+
+                higher = [
+
+                    x
+
+                    for x in bank_best_rates
+
+                    if (
+
+                        x["rate"]
+
+                        >
+
+                        woori_best["rate"]
 
                     )
 
-# ===================================
-# SBRateBot V4 app.py
-# 13/20
-# ===================================
+                    and
 
+                    normalize(x["bank"])
+
+                    !=
+
+                    normalize(woori_best["bank"])
+
+                ]
+
+
+                lower = [
+
+                    x
+
+                    for x in bank_best_rates
+
+                    if (
+
+                        x["rate"]
+
+                        <
+
+                        woori_best["rate"]
+
+                    )
+
+                    and
+
+                    normalize(x["bank"])
+
+                    !=
+
+                    normalize(woori_best["bank"])
+
+                ]
+
+
+                higher.sort(
+
+                    key=lambda x: x["rate"],
+
+                    reverse=True
+
+                )
+
+
+                lower.sort(
+
+                    key=lambda x: x["rate"]
+
+                )
+
+
+                gap = round(
+
+                    woori_best["rate"]
+
+                    -
+
+                    avg_rate,
+
+                    2
+
+                )
+
+
+                if gap > 0:
+
+                    gap_text = (
+
+                        f'<span class="rate-change increase">'
+
+                        f'+{gap:.2f}%p'
+
+                        f'</span>'
+
+                    )
+
+                    evaluation = (
+
+                        "시장 평균 대비 높은 금리로 "
+
+                        "금리 경쟁력이 양호합니다."
+
+                    )
+
+
+                elif gap < 0:
+
+                    gap_text = (
+
+                        f'<span class="rate-change decrease">'
+
+                        f'▲{abs(gap):.2f}%p'
+
+                        f'</span>'
+
+                    )
+
+                    evaluation = (
+
+                        "시장 평균 대비 낮은 금리로 "
+
+                        "금리 경쟁력 개선이 필요합니다."
+
+                    )
+
+
+                else:
+
+                    gap_text = "0.00%p"
+
+                    evaluation = (
+
+                        "시장 평균 수준의 금리입니다."
+
+                    )
+
+
+                market_position = round(
+
+                    (
+
+                        (
+
+                            rank["total"]
+
+                            -
+
+                            rank["rank"]
+
+                            +
+
+                            1
+
+                        )
+
+                        /
+
+                        rank["total"]
+
+                    )
+
+                    *
+
+                    100,
+
+                    1
+
+                )
+
+                answer = (
+
+                    "🏦 우리금융저축은행 경쟁력 분석\n\n"
+
+                    f"기준기간 : {search_period}\n\n"
+
+                    f"현재금리 : {woori_best['rate']:.2f}%\n\n"
+
+                    f"시장순위 : {rank['rank']}위 / {rank['total']}개사\n"
+
+                    f"시장 위치 : 상위 {market_position:.1f}% 수준\n\n"
+
+                    f"평균금리 대비 : {gap_text}\n\n"
+
+                    f"평가 : {evaluation}\n\n"
+
+                    f"📈 우리보다 높은 금리 : {len(higher)}개사\n"
+
+                    f"📉 우리보다 낮은 금리 : {len(lower)}개사\n"
+
+                )
+
+
+                if higher:
+
+                    answer += "\n📈 우리보다 높은 경쟁사 TOP5\n\n"
+
+                    for item in higher[:5]:
+
+                        diff = round(
+
+                            item["rate"] - woori_best["rate"],
+
+                            2
+
+                        )
+
+                        diff_text = (
+
+                            f'<span class="rate-change increase">'
+
+                            f'+{diff:.2f}%p'
+
+                            f'</span>'
+
+                        )
+
+                        answer += (
+
+                            f"{item['bank']} "
+
+                            f"{item['rate']:.2f}% "
+
+                            f"{diff_text}\n"
+
+                        )
+
+
+                if lower:
+
+                    answer += "\n📉 우리보다 낮은 경쟁사 TOP5\n\n"
+
+                    for item in lower[:5]:
+
+                        diff = round(
+
+                            woori_best["rate"] - item["rate"],
+
+                            2
+
+                        )
+
+                        diff_text = (
+
+                            f'<span class="rate-change decrease">'
+
+                            f'▲{diff:.2f}%p'
+
+                            f'</span>'
+
+                        )
+
+                        answer += (
+
+                            f"{item['bank']} "
+
+                            f"{item['rate']:.2f}% "
+
+                            f"{diff_text}\n"
+
+                        )
 
         # -------------------------------
-        # 우리금융 자연어 경쟁력 분석 V4.6
+        # 특정 은행 대비 금리 비교 검색 V4.5
+        #
+        # Intent 기반 비교 처리
+        #
+        # COMPARE_HIGH
+        # - 대원보다 높은 곳
+        # - 페퍼 이기는 곳
+        #
+        # COMPARE_LOW
+        # - 모아보다 낮은 곳
+        #
+        # 기준:
+        # - 은행별 최고금리 기준 비교
+        # - 전체 저축은행 대상
         # -------------------------------
 
 
         elif (
 
-
             not condition_answer
-
-
-            and
-
-
-
-            resolve_bank_name(question) == "우리금융"
-
-
-
-            and
-
-
-
-            intent == "COMPETITIVENESS"
-
-
-        ):
-
-
-
-            woori_items = find_bank_products(
-
-
-                products,
-
-
-                "우리금융저축은행"
-
-
-            )
-
-
-
-            if woori_items:
-
-
-
-                woori_best = max(
-
-
-                    woori_items,
-
-
-                    key=lambda x:
-
-
-                        x["rate"]
-
-
-                )
-
-
-
-                rank = get_market_bank_rank(
-
-
-                    products,
-
-
-                    woori_best["bank"]
-
-
-                )
-
-
-
-                avg_rate = sum(
-
-
-                    x["rate"]
-
-
-                    for x in products
-
-
-                ) / len(products)
-
-
-
-
-
-                bank_best_rates = get_bank_best_rates(
-
-
-                    products
-
-
-                )
-
-
-
-                higher = [
-
-
-
-                    x
-
-
-
-                    for x in bank_best_rates
-
-
-
-                    if (
-
-
-
-                        x["rate"]
-
-
-
-                        >
-
-
-
-                        woori_best["rate"]
-
-
-
-                    )
-
-
-
-                    and
-
-
-
-                    normalize(x["bank"])
-
-
-
-                    !=
-
-
-
-                    normalize(woori_best["bank"])
-
-
-
-                ]
-
-
-
-
-
-                lower = [
-
-
-
-                    x
-
-
-
-                    for x in bank_best_rates
-
-
-
-                    if (
-
-
-
-                        x["rate"]
-
-
-
-                        <
-
-
-
-                        woori_best["rate"]
-
-
-
-                    )
-
-
-
-                    and
-
-
-
-                    normalize(x["bank"])
-
-
-
-                    !=
-
-
-
-                    normalize(woori_best["bank"])
-
-
-
-                ]
-
-
-
-
-
-                higher.sort(
-
-
-                    key=lambda x: x["rate"],
-
-
-                    reverse=True
-
-
-                )
-
-
-
-
-
-                lower.sort(
-
-
-                    key=lambda x: x["rate"]
-
-
-                )
-
-
-
-
-
-                gap = round(
-
-
-                    woori_best["rate"]
-
-
-                    -
-
-
-                    avg_rate,
-
-
-                    2
-
-
-                )
-
-
-
-
-
-                if gap > 0:
-
-
-
-                    gap_text = (
-
-
-
-                        f'<span class="rate-change increase">'
-
-
-
-                        f'+{gap:.2f}%p'
-
-
-
-                        f'</span>'
-
-
-
-                    )
-
-
-
-                    evaluation = (
-
-
-
-                        "시장 평균 대비 높은 금리로 "
-
-
-
-                        "금리 경쟁력이 양호합니다."
-
-
-
-                    )
-
-
-
-
-
-                elif gap < 0:
-
-
-
-                    gap_text = (
-
-
-
-                        f'<span class="rate-change decrease">'
-
-
-
-                        f'▲{abs(gap):.2f}%p'
-
-
-
-                        f'</span>'
-
-
-
-                    )
-
-
-
-                    evaluation = (
-
-
-
-                        "시장 평균 대비 낮은 금리로 "
-
-
-
-                        "금리 경쟁력 개선이 필요합니다."
-
-
-
-                    )
-
-
-
-
-
-                else:
-
-
-
-                    gap_text = "0.00%p"
-
-
-
-                    evaluation = (
-
-
-
-                        "시장 평균 수준의 금리입니다."
-
-
-
-                    )
-
-
-
-
-
-                market_position = round(
-
-
-                    (
-
-
-
-                        (
-
-
-
-                            rank["total"]
-
-
-
-                            -
-
-
-
-                            rank["rank"]
-
-
-
-                            +
-
-
-
-                            1
-
-
-
-                        )
-
-
-
-                        /
-
-
-
-                        rank["total"]
-
-
-
-                    )
-
-
-
-                    *
-
-
-
-                    100,
-
-
-
-                    1
-
-
-
-                )
-
-# ===================================
-# SBRateBot V4 app.py
-# 14/20
-# ===================================
-
-
-                answer = (
-
-
-                    "🏦 우리금융저축은행 경쟁력 분석\n\n"
-
-
-                    f"기준기간 : {search_period}\n\n"
-
-
-                    f"현재금리 : {woori_best['rate']:.2f}%\n\n"
-
-
-                    f"시장순위 : {rank['rank']}위 / {rank['total']}개사\n\n"
-
-
-                    f"시장 위치 : 상위 {market_position:.1f}% 수준\n\n"
-
-
-                    f"평균금리 대비 : {gap_text}\n\n"
-
-
-                    f"평가 : {evaluation}\n\n"
-
-
-                    f"📈 우리보다 높은 금리 : {len(higher)}개사\n"
-
-
-                    f"📉 우리보다 낮은 금리 : {len(lower)}개사\n\n"
-
-
-                )
-
-
-
-
-
-                if higher:
-
-
-                    answer += "\n📈 우리보다 높은 경쟁사 TOP5\n\n"
-
-
-
-                    for item in higher[:5]:
-
-
-                        diff = round(
-
-
-                            item["rate"]
-
-
-                            -
-
-
-                            woori_best["rate"],
-
-
-                            2
-
-
-                        )
-
-
-
-                        if diff > 0:
-
-
-                            diff_text = (
-
-
-                                f'<span class="rate-change increase">'
-
-
-                                f'+{diff:.2f}%p'
-
-
-                                f'</span>'
-
-
-                            )
-
-
-                        elif diff < 0:
-
-
-                            diff_text = (
-
-
-                                f'<span class="rate-change decrease">'
-
-
-                                f'▲{abs(diff):.2f}%p'
-
-
-                                f'</span>'
-
-
-                            )
-
-
-                        else:
-
-
-                            diff_text = "0.00%p"
-
-
-
-
-                        answer += (
-
-
-                            f"{item['bank']} "
-
-
-                            f"{item['rate']:.2f}% "
-
-
-                            f"{diff_text}<br>"
-
-
-                        )
-
-
-
-
-
-
-                if lower:
-
-
-                    answer += "\n📉 우리보다 낮은 경쟁사 TOP5\n\n"
-
-
-
-                    for item in lower[:5]:
-
-
-                        diff = round(
-
-
-                            woori_best["rate"]
-
-
-                            -
-
-
-                            item["rate"],
-
-
-                            2
-
-
-                        )
-
-
-
-                        if diff > 0:
-
-
-                            diff_text = (
-
-
-                                f'<span class="rate-change decrease">'
-
-
-                                f'▲{diff:.2f}%p'
-
-
-                                f'</span>'
-
-
-                            )
-
-
-                        elif diff < 0:
-
-
-                            diff_text = (
-
-
-                                f'<span class="rate-change increase">'
-
-
-                                f'+{abs(diff):.2f}%p'
-
-
-                                f'</span>'
-
-
-                            )
-
-
-                        else:
-
-
-                            diff_text = "0.00%p"
-
-
-
-
-                        answer += (
-
-
-                            f"{item['bank']} "
-
-
-                            f"{item['rate']:.2f}% "
-
-
-                            f"{diff_text}<br>"
-
-
-                        )
-
-# ===================================
-# SBRateBot V4 app.py
-# 15/20
-# ===================================
-
-
-        # -------------------------------
-        # 은행 비교 처리 V4.5
-        #
-        # Intent 기반 비교 처리
-        #
-        # COMPARE_HIGH
-        # - 페퍼 이기는 곳
-        # - 페퍼보다 높은 곳
-        #
-        # COMPARE_LOW
-        # - 신한보다 낮은 곳
-        # -------------------------------
-
-
-        print(
-
-            "COMPARE CHECK:",
-
-            condition_answer,
-
-            target_bank,
-
-            intent
-
-        )
-
-
-
-        if (
-
-            not condition_answer
-
-            and
-
-            target_bank
 
             and
 
@@ -6122,585 +4952,593 @@ def ai_search():
         ):
 
 
-            answer = ""
-
-
-
             # -------------------------------
-            # 실제 은행명 변환
-            # 예:
-            # 페퍼 -> 페퍼저축은행
+            # 비교 대상 은행 찾기
             # -------------------------------
 
-
-            target_bank_full = resolve_bank_name(
+            target_bank = find_target_bank(
 
                 question
 
             )
 
 
-
-            print(
-
-                "COMPARE TARGET FULL:",
-
-                target_bank_full
-
-            )
+            if target_bank:
 
 
+                # -------------------------------
+                # 대상 은행 최고금리
+                # -------------------------------
 
-                        # -------------------------------
-            # 대상 은행 최고금리
-            # -------------------------------
+                target_items = find_bank_products(
 
+                    products,
 
-            target_items = find_bank_products(
-
-                products,
-
-                target_bank_full
-
-            )
-
-
-            print(
-
-                "COMPARE TARGET ITEMS:",
-
-                len(target_items),
-
-                target_items[:3]
-
-            )
-
-
-
-            if target_items:
-
-
-
-                target_rate = max(
-
-                    x["rate"]
-
-                    for x in target_items
+                    target_bank
 
                 )
 
+
+                if target_items:
+
+
+                    target_rate = max(
+
+                        x["rate"]
+
+                        for x in target_items
+
+                    )
+
+
+                    rank = get_market_bank_rank(
+
+                        products,
+
+                        target_bank
+
+                    )
+
+
+                    # -------------------------------
+                    # 시장 평균금리 계산
+                    #
+                    # 기준:
+                    # - 12개월 기준
+                    # - 0% 제외
+                    # -------------------------------
+
+                    valid_rates = []
+
+
+                    for item in products:
+
+
+                        rate = float(
+
+                            item.get(
+
+                                "top_12m"
+
+                            )
+
+                            or item.get(
+
+                                "rate"
+
+                            )
+
+                            or 0
+
+                        )
+
+
+                        if rate > 0:
+
+                            valid_rates.append(
+
+                                rate
+
+                            )
+
+
+
+                    if valid_rates:
+
+
+                        market_average = (
+
+                            sum(valid_rates)
+
+                            /
+
+                            len(valid_rates)
+
+                        )
+
+
+                    else:
+
+
+                        market_average = 0
+
+
+
+                    # -------------------------------
+                    # 은행별 최고금리 생성
+                    # -------------------------------
+
+                    bank_best_rates = {}
+
+
+                    for item in products:
+
+
+                        bank = item.get(
+
+                            "bank"
+
+                        )
+
+
+                        rate = float(
+
+                            item.get(
+
+                                "top_12m"
+
+                            )
+
+                            or item.get(
+
+                                "rate"
+
+                            )
+
+                            or 0
+
+                        )
+
+
+                        if not bank:
+
+                            continue
+
+
+                        if rate <= 0:
+
+                            continue
+
+
+
+                        if (
+
+                            bank not in bank_best_rates
+
+                            or rate >
+
+                            bank_best_rates[bank]
+
+                        ):
+
+
+                            bank_best_rates[bank] = rate
+
+
+
+                    gap = round(
+
+                        target_rate
+
+                        -
+
+                        market_average,
+
+                        2
+
+                    )
+
+
+
+                    if gap > 0:
+
+
+                        gap_text = (
+
+                            f'<span class="rate-change increase">'
+
+                            f'+{gap:.2f}%p'
+
+                            f'</span>'
+
+                        )
+
+
+                    elif gap < 0:
+
+
+                        gap_text = (
+
+                            f'<span class="rate-change decrease">'
+
+                            f'▲{abs(gap):.2f}%p'
+
+                            f'</span>'
+
+                        )
+
+
+                    else:
+
+
+                        gap_text = "0.00%p"
+
+                        id="part2"
+                    # -------------------------------
+                    # 비교 대상 제외 후 은행 리스트 생성
+                    # -------------------------------
+
+                    bank_products = []
+
+
+                    for bank, rate in bank_best_rates.items():
+
+
+                        if normalize(bank) == normalize(target_bank):
+
+                            continue
+
+
+
+                        bank_products.append({
+
+                            "bank": bank,
+
+                            "rate": rate
+
+                        })
+
+
+
+                    # -------------------------------
+                    # 우위 / 열위 판단
+                    # -------------------------------
+
+                    higher_words = [
+
+                        "높은",
+
+                        "좋은",
+
+                        "우위",
+
+                        "앞서는",
+
+                        "경쟁력",
+
+                        "나은",
+
+                        "이기는",
+
+                        "우세",
+
+                        "우세한",
+
+                        "상위",
+
+                        "앞선",
+
+                        "더 높은"
+
+                    ]
+
+
+
+                    is_higher = any(
+
+                        x in question
+
+                        for x in higher_words
+
+                    )
+
+
+
+                    if is_higher:
+
+
+                        result = [
+
+                            x
+
+                            for x in bank_products
+
+                            if x["rate"] > target_rate
+
+                        ]
+
+
+                        result.sort(
+
+                            key=lambda x:x["rate"],
+
+                            reverse=True
+
+                        )
+
+
+                        title = (
+
+                            f"📈 {target_bank} 대비 우위 은행"
+
+                        )
+
+
+                    else:
+
+
+                        result = [
+
+                            x
+
+                            for x in bank_products
+
+                            if x["rate"] < target_rate
+
+                        ]
+
+
+                        result.sort(
+
+                            key=lambda x:x["rate"],
+
+                            reverse=True
+
+                        )
+
+
+                        title = (
+
+                            f"📉 {target_bank} 대비 열위 은행"
+
+                        )
+
+
+
+                    answer = (
+
+                        f"{title}\n\n"
+
+                        f"{target_bank} 최고금리 : "
+
+                        f"{target_rate:.2f}%\n\n"
+
+                        f"시장순위 : "
+
+                        f"{rank['rank']}위 / "
+
+                        f"{rank['total']}개사\n\n"
+
+                        f"저축은행 최고금리 평균 대비 : "
+
+                        f"{gap_text}\n\n"
+
+                    )
+
+
+
+                    if is_higher:
+
+
+                        answer += (
+
+                            f"현재 {target_bank}보다 "
+
+                            f"높은 금리를 제공하는 은행은 "
+
+                            f"{len(result)}개입니다.\n\n"
+
+                        )
+
+
+                    else:
+
+
+                        answer += (
+
+                            f"현재 {target_bank}보다 "
+
+                            f"낮은 금리를 제공하는 은행은 "
+
+                            f"{len(result)}개입니다.\n\n"
+
+                        )
+
+
+
+                                        # -------------------------------
+                    # TOP 10 출력
+                    # 증감 표시 색상 통일 V4.5.2
+                    #
+                    # AI 검색 결과 표시 기준
+                    # 증가 : 파란색 + 표시
+                    # 감소 : 빨간색 ▲ 표시
+                    #
+                    # 대시보드 / AI 응답 표시 규칙 통일
+                    # -------------------------------
+
+
+                    if result:
+
+
+                        for idx, item in enumerate(
+
+                            result[:10],
+
+                            start=1
+
+                        ):
+
+
+                            diff = round(
+
+                                item["rate"]
+
+                                -
+
+                                target_rate,
+
+                                2
+
+                            )
+
+
+
+                            if diff > 0:
+
+
+                                diff_text = (
+
+                                    f'<span class="rate-change increase">'
+
+                                    f'+{diff:.2f}%p'
+
+                                    f'</span>'
+
+                                )
+
+
+                            elif diff < 0:
+
+
+                                diff_text = (
+
+                                    f'<span class="rate-change decrease">'
+
+                                    f'▲{abs(diff):.2f}%p'
+
+                                    f'</span>'
+
+                                )
+
+
+                            else:
+
+
+                                diff_text = (
+
+                                    "0.00%p"
+
+                                )
+
+
+
+                            answer += (
+
+                                f"{idx}. "
+
+                                f"{item['bank']} "
+
+                                f"{item['rate']:.2f}% "
+
+                                f"{diff_text}\n"
+
+                            )
+
+
+
+                    else:
+
+
+                        answer += (
+
+                            "조건에 맞는 은행이 없습니다."
+
+                        )
+
+        # -------------------------------
+        # 우리금융 시장 순위
+        # -------------------------------
+
+        elif (
+
+            "우리금융"
+
+            in question
+
+            and
+
+            "순위"
+
+            in question
+
+        ):
+
+
+            woori_items = find_bank_products(
+
+                products,
+
+                "우리금융저축은행"
+
+            )
+
+
+            if woori_items:
+
+
+                item = max(
+
+                    woori_items,
+
+                    key=lambda x:
+
+                        x["rate"]
+
+                )
 
 
                 rank = get_market_bank_rank(
 
                     products,
 
-                    target_bank_full
+                    item["bank"]
 
                 )
 
 
+                answer = (
 
+                    "🏦 우리금융저축은행 시장 순위\n\n"
 
+                    f"기간 : {search_period}\n"
 
-                # -------------------------------
-                # 시장 평균금리 계산
-                #
-                # 기준:
-                # - 12개월 기준
-                # - 0% 제외
-                # -------------------------------
+                    f"대표상품 : {item['product']}\n"
 
+                    f"금리 : {item['rate']:.2f}%\n"
 
-                valid_rates = []
+                    f"순위 : {rank['rank']}위 / "
 
-
-
-                for item in products:
-
-
-
-                    rate = float(
-
-
-
-                        item.get(
-
-                            "top_12m"
-
-                        )
-
-
-
-                        or item.get(
-
-                            "rate"
-
-                        )
-
-
-
-                        or 0
-
-
-
-                    )
-
-
-
-                    if rate > 0:
-
-
-
-                        valid_rates.append(
-
-
-                            rate
-
-
-                        )
-
-
-
-
-
-                if valid_rates:
-
-
-
-                    market_average = (
-
-
-                        sum(valid_rates)
-
-
-                        /
-
-
-                        len(valid_rates)
-
-
-                    )
-
-
-
-                else:
-
-
-
-                    market_average = 0
-
-
-
-
-
-                                # -------------------------------
-                # 은행별 최고금리 생성
-                # -------------------------------
-
-                bank_best_rates = {}
-
-                for item in products:
-
-                    bank = item.get(
-                        "bank"
-                    )
-
-                    rate = float(
-
-                        item.get(
-                            "top_12m"
-                        )
-
-                        or item.get(
-                            "rate"
-                        )
-
-                        or 0
-
-                    )
-
-                    if not bank:
-                        continue
-
-                    if rate <= 0:
-                        continue
-
-                    if (
-
-                        bank not in bank_best_rates
-
-                        or
-
-                        rate > bank_best_rates[bank]
-
-                    ):
-
-                        bank_best_rates[bank] = rate
-
-                # -------------------------------
-                # 생성 결과 로그
-                # -------------------------------
-
-                print("BANK BEST RATES (RAW)")
-
-                for bank, rate in sorted(
-
-                    bank_best_rates.items(),
-
-                    key=lambda x: x[1],
-
-                    reverse=True
-
-                ):
-
-                    print(bank, rate)
-
-                gap = round(
-
-                    target_rate
-
-                    -
-
-                    market_average,
-
-                    2
+                    f"{rank['total']}개사"
 
                 )
 
-                if gap > 0:
-
-                    gap_text = (
-
-                        f'<span class="rate-change increase">'
-
-                        f'+{gap:.2f}%p'
-
-                        f'</span>'
-
-                    )
-
-                elif gap < 0:
-
-                    gap_text = (
-
-                        f'<span class="rate-change decrease">'
-
-                        f'▲{abs(gap):.2f}%p'
-
-                        f'</span>'
-
-                    )
-
-                else:
-
-                    gap_text = "0.00%p"
-
-                    
-
-# ===================================
-# SBRateBot V4 app.py
-# 16/20
-# ===================================
-
-                # -------------------------------
-                # 비교 대상 제외 후 은행 리스트 생성
-                #
-                # 기준:
-                # - 은행별 최고금리 기준
-                # - 비교 대상 은행 제외
-                # -------------------------------
-
-                bank_products = []
-
-                for bank, rate in bank_best_rates.items():
-
-                    if normalize(bank) == normalize(target_bank_full):
-                        continue
-
-                    bank_products.append({
-                        "bank": bank,
-                        "rate": rate
-                    })
-
-                # -------------------------------
-                # 은행 금리 내림차순 정렬
-                # -------------------------------
-
-                bank_products.sort(
-                    key=lambda x: x["rate"],
-                    reverse=True
-                )
-
-                # -------------------------------
-                # 비교 대상 로그
-                # -------------------------------
-
-                print("BANK PRODUCTS")
-
-                for item in bank_products[:20]:
-                    print(item)
-
-                print(
-                    "COMPARE TARGET BANK:",
-                    target_bank_full
-                )
-
-                print(
-                    "COMPARE TARGET RATE:",
-                    target_rate
-                )
-
-                # -------------------------------
-                # 높은 금리 / 낮은 금리
-                # -------------------------------
-
-                if intent == "COMPARE_HIGH":
-
-                    result = [
-                        x
-                        for x in bank_products
-                        if x["rate"] > target_rate
-                    ]
-
-                    title = (
-                        f"📈 {target_bank_full} 대비 높은 금리 은행"
-                    )
-
-                else:
-
-                    result = [
-                        x
-                        for x in bank_products
-                        if x["rate"] < target_rate
-                    ]
-
-                    title = (
-                        f"📉 {target_bank_full} 대비 낮은 금리 은행"
-                    )
-
-                # -------------------------------
-                # 동일 최고금리 은행
-                # (17에서 출력용)
-                # -------------------------------
-
-                same_rate_result = [
-                    x
-                    for x in bank_products
-                    if x["rate"] == target_rate
-                ]
-
-                same_rate_result.sort(
-                    key=lambda x: x["bank"]
-                )
-
-                # 기준은행 포함
-                same_rate_count = len(same_rate_result) + 1
-
-                # -------------------------------
-                # 결과 금리순 정렬
-                # -------------------------------
-
-                result.sort(
-                    key=lambda x: x["rate"],
-                    reverse=True
-                )
-
-                # -------------------------------
-                # 비교 테스트 로그
-                # -------------------------------
-
-                print(
-                    "COMPARE RESULT COUNT:",
-                    len(result)
-                )
-
-                print(
-                    "COMPARE RESULT SAMPLE:",
-                    result[:5]
-                )
-
-                print(
-                    "SAME RATE RESULT:",
-                    same_rate_result[:5]
-                )
-
-                print(
-                    "BANK BEST SAMPLE:",
-                    bank_products[:10]
-                )
-
-                                # -------------------------------
-                # 기본 답변 생성
-                # -------------------------------
-
-                if intent == "COMPARE_HIGH":
-
-                    if result:
-
-                        answer = (
-                            "📊 시장 모니터링 결과<br><br>"
-                            f"{target_bank_full}보다 높은 금리를 제공하는 은행이 있습니다.<br><br>"
-                            f"시장 최고금리 : {result[0]['rate']:.2f}%<br>"
-                            f"{target_bank_full} 최고금리 : {target_rate:.2f}%<br>"
-                            f"시장순위 : {rank['rank']}위 / {rank['total']}개사<br><br>"
-                        )
-
-                    else:
-
-                        if same_rate_result:
-
-                            answer = (
-                                "🏆 시장 모니터링 결과<br><br>"
-                                f"{target_bank_full}는 현재 시장 최고금리 공동 1위입니다.<br><br>"
-                                f"시장 최고금리 : {target_rate:.2f}%<br>"
-                                f"공동 1위 경쟁 : {same_rate_count}개 은행<br><br>"
-                            )
-
-                        else:
-
-                            answer = (
-                                "🏆 시장 모니터링 결과<br><br>"
-                                f"{target_bank_full}는 현재 시장 최고금리 단독 1위입니다.<br><br>"
-                                f"시장 최고금리 : {target_rate:.2f}%<br>"
-                                f"시장순위 : 1위 / {rank['total']}개사<br><br>"
-                            )
-
-                else:
-
-                    answer = (
-                        f"{title}<br><br>"
-                        f"{target_bank_full} 최고금리 : {target_rate:.2f}%<br>"
-                        f"시장순위 : {rank['rank']}위 / {rank['total']}개사<br>"
-                        f"시장 평균 대비 : {gap_text}<br><br>"
-                    )
-
-
-# ===================================
-# SBRateBot V4 app.py
-# 17/20
-# ===================================
-
-                # -------------------------------
-                # AI 비교 검색 결과 출력
-                #
-                # 증감 표시 색상 통일 V4.5.2
-                #
-                # AI 검색 결과 표시 기준
-                # 증가 : 파란색 + 표시
-                # 감소 : 빨간색 ▲ 표시
-                #
-                # 대시보드 / AI 응답 표시 규칙 통일
-                # -------------------------------
-
-                print(
-                    "COMPARE RESULT:",
-                    result[:10]
-                )
-
-                print(
-                    "SAME RATE RESULT:",
-                    same_rate_result[:10]
-                )
-
-                if result:
-
-                    for idx, item in enumerate(
-                        result[:10],
-                        start=1
-                    ):
-
-                        diff = round(
-                            item["rate"] - target_rate,
-                            2
-                        )
-
-                        if diff > 0:
-
-                            diff_text = (
-                                f'<span class="rate-change increase">'
-                                f'+{diff:.2f}%p'
-                                f'</span>'
-                            )
-
-                        elif diff < 0:
-
-                            diff_text = (
-                                f'<span class="rate-change decrease">'
-                                f'▲{abs(diff):.2f}%p'
-                                f'</span>'
-                            )
-
-                        else:
-
-                            diff_text = "동일금리"
-
-                        answer += (
-                            f"{idx}. "
-                            f"{item['bank']} "
-                            f"{item['rate']:.2f}% "
-                            f"{diff_text}<br>"
-                        )
-
-                else:
-
-                    if intent == "COMPARE_HIGH":
-
-                        answer += (
-                            f"현재 {target_bank_full}보다 "
-                            f"높은 금리를 제공하는 은행은 없습니다.<br>"
-                        )
-
-                        if same_rate_result:
-
-                            answer += (
-                                "<br><b>동일 최고금리 경쟁 은행</b><br>"
-                            )
-
-                            for idx, item in enumerate(
-                                same_rate_result,
-                                start=1
-                            ):
-
-                                answer += (
-                                    f"{idx}. "
-                                    f"{item['bank']} "
-                                    f"{item['rate']:.2f}%<br>"
-                                )
-
-                    elif intent == "COMPARE_LOW":
-
-                        answer += (
-                            f"현재 {target_bank_full}보다 "
-                            f"낮은 금리를 제공하는 은행은 없습니다.<br>"
-                        )
-
-                        
-                # ===================================
-# SBRateBot V4 app.py
-# 18/20
-# ===================================
 
 
         # -------------------------------
         # 일반 검색
         # -------------------------------
 
-
         if not answer:
 
 
             result = search_product_keyword(
 
-
                 products,
-
 
                 question
 
-
             )
-
 
 
             if result:
@@ -6708,12 +5546,9 @@ def ai_search():
 
                 answer = (
 
-
                     f"📌 {search_period} 검색 결과\n\n"
 
-
                 )
-
 
 
                 for item in result[:10]:
@@ -6721,17 +5556,13 @@ def ai_search():
 
                     answer += (
 
-
                         f"{item['bank']} "
 
                         f"{item['product']} "
 
                         f"{item['rate']:.2f}%\n"
 
-
                     )
-
-
 
 
 
@@ -6743,12 +5574,9 @@ def ai_search():
 
         gemini_required = any(
 
-
             x in question
 
-
             for x in [
-
 
                 "전망",
 
@@ -6762,13 +5590,9 @@ def ai_search():
 
                 "금리 전망"
 
-
             ]
 
-
         )
-
-
 
 
 
@@ -6780,51 +5604,35 @@ def ai_search():
 
                 avg_rate = sum(
 
-
                     x["rate"]
 
-
                     for x in products
-
 
                 ) / len(products)
 
 
 
-
                 highest = max(
-
 
                     products,
 
-
                     key=lambda x:
-
 
                         x["rate"]
 
-
                 )
-
-
 
 
 
                 lowest = min(
 
-
                     products,
-
 
                     key=lambda x:
 
-
                         x["rate"]
 
-
                 )
-
-
 
 
 
@@ -6833,126 +5641,80 @@ def ai_search():
 
                     "검색기간":
 
-
                         search_period,
-
 
 
                     "상품수":
 
-
                         len(products),
-
 
 
                     "평균금리":
 
-
-                        round(
-
-
-                            avg_rate,
-
-
-                            2
-
-
-                        ),
-
+                        round(avg_rate,2),
 
 
                     "최고금리":
 
-
                         highest,
-
 
 
                     "최저금리":
 
-
                         lowest,
-
 
 
                     "상품데이터":
 
-
                         products[:30]
-
 
                 }
 
 
 
-
-
                 market_data = json.dumps(
-
 
                     market_context,
 
-
                     ensure_ascii=False
 
-
                 )
-
-
 
 
 
                 prompt_question = (
 
-
                     "당신은 저축은행 예금금리 전략 담당자입니다.\n\n"
-
 
                     "현재 금리 데이터를 단순 요약하지 말고 "
 
-
                     "시장 전망과 전략 관점으로 분석하세요.\n\n"
-
 
                     "반드시 포함:\n"
 
-
                     "1. 향후 금리 방향 전망\n"
-
 
                     "2. 저축은행 경쟁 변화\n"
 
-
                     "3. 고객 유치 전략\n"
-
 
                     "4. 우리금융저축은행 대응 방향\n\n"
 
-
                     "질문:\n"
-
 
                     + question
 
-
                 )
-
-
 
 
 
                 ai_comment = ask_gemini(
 
-
                     prompt_question,
-
 
                     market_data
 
-
                 )
-
-
 
 
 
@@ -6961,18 +5723,13 @@ def ai_search():
 
                     answer += (
 
-
                         "\n\n"
-
 
                         "🤖 AI 전문가 분석\n\n"
 
-
                         + ai_comment
 
-
                     )
-
 
 
                 else:
@@ -6980,16 +5737,11 @@ def ai_search():
 
                     answer = (
 
-
                         "🤖 AI 전문가 분석\n\n"
-
 
                         + ai_comment
 
-
                     )
-
-
 
 
 
@@ -6998,113 +5750,61 @@ def ai_search():
 
                 print(
 
-
                     "GEMINI ERROR:",
-
 
                     e
 
-
                 )
 
-# ===================================
-# SBRateBot V4 app.py
-# 19/20
-# ===================================
-
-
-        # -------------------------------
-        # 검색 결과 없음 처리
-        # -------------------------------
 
 
         if not answer:
 
 
-
             answer = (
 
-
-
                 "검색 결과가 없습니다."
-
-
 
             )
 
 
 
-
-
         return jsonify({
-
-
 
             "answer":
 
-
-
                 answer
 
-
-
         })
-
-
-
 
 
 
     except Exception as e:
 
 
-
         print(
-
-
 
             "AI SEARCH ERROR:",
 
-
-
             e
-
-
 
         )
 
 
-
-
-
         return jsonify({
-
-
 
             "answer":
 
-
-
                 "AI 검색 오류가 발생했습니다."
 
-
-
         })
-
-
-
-
 
 
 # -------------------------------
 # Scheduler 연결
 # -------------------------------
 
-
 from scheduler import start_scheduler
-
-
-
 
 
 
@@ -7116,18 +5816,12 @@ from scheduler import start_scheduler
 if __name__ == "__main__":
 
 
-
     # ===============================
     # 자동 금리 업데이트 스케줄러 시작
     # 매일 00:05 crawler.py 실행
     # ===============================
 
-
-
     start_scheduler()
-
-
-
 
 
 
@@ -7135,52 +5829,14 @@ if __name__ == "__main__":
     # Flask 서버 실행
     # ===============================
 
-
-
     app.run(
-
-
 
         host="0.0.0.0",
 
-
-
         port=5000,
-
-
 
         debug=True,
 
-
-
         use_reloader=False
 
-
-
     )
-
-    # ===================================
-# SBRateBot V4 app.py
-# 20/20
-# ===================================
-
-
-# 파일 종료
-#
-# app.py 마지막 실행부:
-#
-# if __name__ == "__main__":
-#
-#     start_scheduler()
-#
-#     app.run(
-#         host="0.0.0.0",
-#         port=5000,
-#         debug=True,
-#         use_reloader=False
-#     )
-#
-# ===================================
-# END OF FILE
-# ===================================
-

@@ -2080,7 +2080,6 @@ def analyze_bank_status(
 
     if not items:
 
-
         return None
 
 
@@ -2292,7 +2291,23 @@ def analyze_bank_status(
 
         "position_text":
 
-            f"상위 {round(((rank['total']-rank['rank']+1)/rank['total'])*100,1)}%"
+            (
+
+                "상위권"
+
+                if rank["rank"] <= 15
+
+                else
+
+                "중위권"
+
+                if rank["rank"] <= 50
+
+                else
+
+                "하위권"
+
+            )
 
     }
 
@@ -4094,7 +4109,7 @@ def ai_search():
 
                 total = bank_analysis["total"]
 
-                                # -------------------------------
+                # -------------------------------
                 # 시장 포지션 판단 V5.0
                 # 시장순위 기반 상위/중위/하위권 표시
                 # -------------------------------
@@ -4104,7 +4119,7 @@ def ai_search():
                     market_position = "상위권"
 
 
-                elif rank <= 45:
+                elif rank <= 50:
 
                     market_position = "중위권"
 
@@ -4113,22 +4128,6 @@ def ai_search():
 
                     market_position = "하위권"
 
-
-
-
-
-                # 시장 위치 계산
-
-
-                position = round(
-
-
-                    (rank / total) * 100,
-
-
-                    1
-
-                )
 
 
 
@@ -6130,69 +6129,6 @@ def ai_search():
 
 
 
-
-
-                market_position = round(
-
-
-                    (
-
-
-
-                        (
-
-
-
-                            rank["total"]
-
-
-
-                            -
-
-
-
-                            rank["rank"]
-
-
-
-                            +
-
-
-
-                            1
-
-
-
-                        )
-
-
-
-                        /
-
-
-
-                        rank["total"]
-
-
-
-                    )
-
-
-
-                    *
-
-
-
-                    100,
-
-
-
-                    1
-
-
-
-                )
-
 # ===================================
 # SBRateBot V4 app.py
 # 14/20
@@ -6214,7 +6150,7 @@ def ai_search():
                     f"시장순위 : {rank['rank']}위 / {rank['total']}개사\n\n"
 
 
-                    f"시장 위치 : 상위 {market_position:.1f}% 수준\n\n"
+                    f"시장 위치 : {market_position}\n\n"
 
 
                     f"평균금리 대비 : {gap_text}\n\n"

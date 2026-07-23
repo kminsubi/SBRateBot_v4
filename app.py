@@ -6311,13 +6311,15 @@ def ai_search():
 # 13/20
 # ===================================
 
-        # -------------------------------
-        # 경쟁력 개선 전략 분석 V5.4
+                # -------------------------------
+        # 경쟁력 개선 전략 분석 V5.5
         #
         # 예:
         # 우리금융 어떻게 해야돼
         # 경쟁력 개선방안 알려줘
         # 금리 전략 알려줘
+        #
+        # TOP10 진입 목표금리 / 필요 개선폭 추가
         # -------------------------------
 
 
@@ -6373,6 +6375,96 @@ def ai_search():
 
 
 
+                # -------------------------------
+                # TOP10 진입 목표금리 계산 V5.5
+                #
+                # 시장 TOP10 마지막 금리 기준
+                # -------------------------------
+
+
+                bank_best_rates = get_bank_best_rates(
+
+                    products
+
+                )
+
+
+
+                top10_rates = sorted(
+
+                    [
+
+                        x["rate"]
+
+                        for x in bank_best_rates
+
+                    ],
+
+                    reverse=True
+
+                )
+
+
+
+                if len(top10_rates) >= 10:
+
+
+                    target_rate = top10_rates[9]
+
+
+                else:
+
+
+                    target_rate = top10_rates[-1]
+
+
+
+                target_gap = target_rate - rate
+
+
+
+                if target_gap > 0:
+
+
+                    target_gap_text = (
+
+                        f'<span class="rate-change increase">'
+
+                        f'+{target_gap:.2f}%p'
+
+                        f'</span>'
+
+                    )
+
+
+                elif target_gap < 0:
+
+
+                    target_gap_text = (
+
+                        f'<span class="rate-change decrease">'
+
+                        f'▲{abs(target_gap):.2f}%p'
+
+                        f'</span>'
+
+                    )
+
+
+                else:
+
+
+                    target_gap_text = "0.00%p"
+
+
+
+
+
+                # -------------------------------
+                # TOP10 대비 표시
+                # -------------------------------
+
+
                 if top10_gap < 0:
 
 
@@ -6402,6 +6494,52 @@ def ai_search():
 
 
 
+
+
+                # -------------------------------
+                # 개선 전략 자동 문구
+                # -------------------------------
+
+
+                if target_gap >= 0.6:
+
+
+                    strategy_text = (
+
+                        "- TOP10 진입을 위해 대표상품 금리 "
+
+                        f"약 {target_gap:.2f}%p 수준의 개선 필요\n\n"
+
+                    )
+
+
+                elif target_gap >= 0.3:
+
+
+                    strategy_text = (
+
+                        "- 핵심 상품 중심의 금리 조정으로 "
+
+                        "경쟁력 개선 검토 필요\n\n"
+
+                    )
+
+
+                else:
+
+
+                    strategy_text = (
+
+                        "- 현재 금리 수준에서 소폭 조정으로 "
+
+                        "시장 경쟁력 확보 가능\n\n"
+
+                    )
+
+
+
+
+
                 answer = (
 
                     f"■ {bank_analysis['bank'].replace('저축은행','')} 경쟁력 개선 전략\n\n"
@@ -6414,14 +6552,19 @@ def ai_search():
 
                     f"TOP10 평균금리 : {top10_avg:.2f}%\n\n"
 
+                    f"TOP10 진입 목표금리 : {target_rate:.2f}%\n\n"
+
+                    f"필요 개선폭 : {target_gap_text}\n\n"
+
                     f"TOP10 대비 : {gap_text}\n\n"
 
 
                     "📌 개선 방향\n\n"
 
+
                     "1. 대표상품 금리 경쟁력 강화\n"
 
-                    "- TOP10 진입을 위해 핵심 상품 금리 개선 검토 필요\n\n"
+                    + strategy_text +
 
 
                     "2. 주력상품 집중 전략\n"
@@ -6436,7 +6579,11 @@ def ai_search():
 
                     "4. 고객 확보 전략\n"
 
-                    "- 금리뿐 아니라 우대조건·채널 경쟁력을 함께 강화 필요"
+                    "- 금리뿐 아니라 우대조건·채널 경쟁력을 함께 강화 필요\n\n"
+                    
+                    "5. 차별화 전략\n"
+
+                    "- 단순 금리 경쟁보다 상품 구조 및 고객 혜택 차별화 필요"
 
                 )
 

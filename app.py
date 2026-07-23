@@ -4218,7 +4218,7 @@ def ai_search():
 
 
 
-        # -------------------------------
+                # -------------------------------
         # 경쟁력 개선 전략 분석 V5.4
         #
         # 예:
@@ -4241,6 +4241,117 @@ def ai_search():
             target_bank
 
         ):
+
+
+            if bank_analysis:
+
+
+                rate = bank_analysis["rate"]
+
+                rank = bank_analysis["rank"]
+
+                total = bank_analysis["total"]
+
+
+
+                top10 = sorted(
+
+                    products,
+
+                    key=lambda x: x["rate"],
+
+                    reverse=True
+
+                )[:10]
+
+
+
+                top10_avg = sum(
+
+                    x["rate"]
+
+                    for x in top10
+
+                ) / len(top10)
+
+
+
+                top10_gap = rate - top10_avg
+
+
+
+                if top10_gap < 0:
+
+
+                    gap_text = (
+
+                        f'<span class="rate-change decrease">'
+
+                        f'▲{abs(top10_gap):.2f}%p'
+
+                        f'</span>'
+
+                    )
+
+
+                elif top10_gap > 0:
+
+
+                    gap_text = (
+
+                        f'<span class="rate-change increase">'
+
+                        f'+{top10_gap:.2f}%p'
+
+                        f'</span>'
+
+                    )
+
+
+                else:
+
+
+                    gap_text = "0.00%p"
+
+
+
+                answer = (
+
+                    f"■ {bank_analysis['bank'].replace('저축은행','')} 경쟁력 개선 전략\n\n"
+
+                    f"기준기간 : {search_period}\n\n"
+
+                    f"현재금리 : {rate:.2f}%\n\n"
+
+                    f"시장순위 : {rank}위 / {total}개사\n\n"
+
+                    f"TOP10 평균금리 : {top10_avg:.2f}%\n\n"
+
+                    f"TOP10 대비 : {gap_text}\n\n"
+
+
+                    "📌 개선 방향\n\n"
+
+                    "1. 대표상품 금리 경쟁력 강화\n"
+
+                    "- TOP10 진입을 위해 핵심 상품 금리 개선 검토 필요\n\n"
+
+
+                    "2. 주력상품 집중 전략\n"
+
+                    "- 회전형·비대면 상품 중심 경쟁력 확보 필요\n\n"
+
+
+                    "3. 시장 대응 전략\n"
+
+                    "- 경쟁 저축은행 금리 변동 모니터링 및 탄력 대응 필요\n\n"
+
+
+                    "4. 고객 확보 전략\n"
+
+                    "- 금리뿐 아니라 우대조건·채널 경쟁력을 함께 강화 필요"
+
+                )
 
 
             if bank_analysis:

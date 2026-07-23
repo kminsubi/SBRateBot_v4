@@ -32,7 +32,7 @@ jobs:
       # Repository Checkout
       # -------------------------------
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
 
 
@@ -40,7 +40,7 @@ jobs:
       # Python Setup
       # -------------------------------
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.13"
           cache: "pip"
@@ -89,7 +89,14 @@ jobs:
           git add -f data/banks.json
 
 
-          git commit -m "Auto update rates" || echo "No changes to commit"
+          if git diff --cached --quiet; then
 
+            echo "No changes to commit"
 
-          git push
+          else
+
+            git commit -m "Auto update rates"
+
+            git push
+
+          fi

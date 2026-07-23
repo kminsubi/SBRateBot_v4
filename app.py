@@ -7537,7 +7537,7 @@ def ai_search():
 
         )
 
-                # -------------------------------
+        # -------------------------------
         # 은행명 금리 조회 우선 처리 V4.9
         # 은행명 입력 시 해당 은행 상품 먼저 검색
         # -------------------------------
@@ -7588,13 +7588,37 @@ def ai_search():
                 for item in bank_products[:10]:
 
 
+                    bank_name = item["bank"]
+
+
+                    product_name = item["product"]
+
+
+
+                    # 상품명 앞 은행명 중복 제거
+                    if product_name.startswith(bank_name):
+
+
+                        product_name = (
+
+
+                            product_name[len(bank_name):]
+
+
+                            .strip()
+
+
+                        )
+
+
+
                     answer += (
 
 
-                        f"{item['bank']} "
+                        f"{bank_name} "
 
 
-                        f"{item['product']} "
+                        f"{product_name} "
 
 
                         f"{item['rate']:.2f}%\n"

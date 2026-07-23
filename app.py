@@ -7,6 +7,7 @@
 from flask import Flask, render_template, jsonify, request
 
 from ai.gemini import ask_gemini
+from prompt import get_prompt, detect_prompt_type
 
 import json
 import os
@@ -222,7 +223,8 @@ def normalize(text):
 
 
 # -------------------------------
-# 상품 키워드 검색 V4.5
+# 상품 키워드 검색 V5
+# 은행명 + 상품명 검색
 # -------------------------------
 
 
@@ -232,9 +234,67 @@ def search_product_keyword(products, question):
     q = normalize(question)
 
 
+    # -------------------------------
+    # 은행명 Alias
+    # -------------------------------
+
+    bank_alias = {
+
+        "우리금융":
+            "우리금융저축은행",
+
+        "우리":
+            "우리금융저축은행",
+
+        "신한":
+            "신한저축은행",
+
+        "하나":
+            "하나저축은행",
+
+        "kb":
+            "KB저축은행",
+
+        "국민":
+            "KB저축은행",
+
+        "페퍼":
+            "페퍼저축은행",
+
+        "페퍼저축":
+            "페퍼저축은행",
+
+        "osb":
+            "OSB저축은행",
+
+        "오에스비":
+            "OSB저축은행"
+
+    }
+
+
+
+    target_bank = None
+
+
+
+    for key, value in bank_alias.items():
+
+
+        if normalize(key) in q:
+
+
+            target_bank = normalize(value)
+
+            break
+
+
+
+    # -------------------------------
+    # 검색 키워드
+    # -------------------------------
 
     keywords = [
-
 
         "정기예금",
 
@@ -248,12 +308,11 @@ def search_product_keyword(products, question):
 
         "특판"
 
-
     ]
 
 
 
-    keyword = None
+    target_keyword = None
 
 
 
@@ -263,17 +322,9 @@ def search_product_keyword(products, question):
         if normalize(item) in q:
 
 
-            keyword = item
+            target_keyword = normalize(item)
 
             break
-
-
-
-    if not keyword:
-
-
-        return []
-
 
 
 
@@ -284,32 +335,81 @@ def search_product_keyword(products, question):
     for product in products:
 
 
-
-        product_name = normalize(
-
+        bank = normalize(
 
             product.get(
 
-
-                "product",
-
+                "bank",
 
                 ""
 
-
             )
-
 
         )
 
 
+        product_name = normalize(
 
-        if normalize(keyword) in product_name:
+            product.get(
+
+                "product",
+
+                ""
+
+            )
+
+        )
+
+
+        # -------------------------------
+        # 은행명 검색
+        # -------------------------------
+
+        if target_bank:
+
+
+            if target_bank not in bank:
+
+                continue
 
 
 
-            result.append(product)
+        # -------------------------------
+        # 상품명 검색
+        # -------------------------------
 
+        if target_keyword:
+
+
+            if target_keyword not in product_name:
+
+                continue
+
+
+
+        result.append(product)
+
+
+
+    # -------------------------------
+    # 금리 높은 순 정렬
+    # -------------------------------
+
+    result.sort(
+
+        key=lambda x:
+
+        x.get(
+
+            "rate",
+
+            0
+
+        ),
+
+        reverse=True
+
+    )
 
 
     return result
@@ -7362,18 +7462,19 @@ def ai_search():
                         f"낮은 금리를 제공하는 은행은 없습니다.<br>"
 
                     )
-                        
+
 # ===================================
 # SBRateBot V4 app.py
 # 18/20
 # ===================================
-
-
+                        
         # -------------------------------
-        # Gemini 전략 분석 여부 판단
+        # Gemini 전략 분석 여부 판단 V4.9
         #
-        # 전망 / 전략 / 보고서 질문은
-        # 일반 상품 검색 제외
+        # 전망 / 전략 / 보고서 / 운영방향 질문은
+        # Gemini 전문 분석 처리
+        #
+        # 일반 상품 검색과 분리
         # -------------------------------
 
 
@@ -7394,13 +7495,41 @@ def ai_search():
 
                 "보고서",
 
+                "시장전망",
+
                 "시장 전망",
+
+                "금리전망",
 
                 "금리 전망",
 
+                "대응방향",
+
                 "대응 방향",
 
-                "운영 방향"
+                "운영방향",
+
+                "운영 방향",
+
+                "경쟁전략",
+
+                "경쟁 전략",
+
+                "상품전략",
+
+                "상품 전략",
+
+                "수신전략",
+
+                "수신 전략",
+
+                "향후",
+
+                "앞으로",
+
+                "어떻게 운영",
+
+                "어떻게 가져가"
 
 
             ]
@@ -7412,10 +7541,11 @@ def ai_search():
 
 
 
-        # -------------------------------
+                # -------------------------------
         # 일반 상품 검색
         #
-        # 단순 상품 조회만 실행
+        # 단순 상품명 / 금리 조회 처리
+        # Gemini 분석 제외
         # -------------------------------
 
 
@@ -7450,338 +7580,228 @@ def ai_search():
 
                 for item in result[:10]:
 
+                    join_target = item.get(
+                        "join_target",
+                        ""
+                    )
 
-                    answer += (
-
-
-                        f"{item['bank']} "
-
-                        f"{item['product']} "
-
-                        f"{item['rate']:.2f}%\n"
-
-
+                    # 줄바꿈 제거
+                    join_target = (
+                        join_target
+                        .replace("\n", " ")
+                        .replace("\r", " ")
+                        .strip()
                     )
 
 
+                    product_name = (
+                        item.get(
+                            "product",
+                            ""
+                        )
+                        .replace("\n", " ")
+                        .replace("\r", " ")
+                        .strip()
+                    )
 
 
+                    if join_target:
 
+                        answer += (
 
+                            f"{item['bank']} "
 
+                            f"{product_name} "
+
+                            f"{join_target} "
+
+                            f"{item['rate']:.2f}%\n"
+
+                        )
+
+                    else:
+
+                        answer += (
+
+                            f"{item['bank']} "
+
+                            f"{product_name} "
+
+                            f"{item['rate']:.2f}%\n"
+
+                        )
 
         # -------------------------------
-        # Gemini 전략 분석
+        # Gemini 전략 분석 V4.9
         #
         # 목적:
         # - 경영진 보고 수준 분석
-        # - 상품 나열 방지
-        # - 데이터 기반 전략 제시
+        # - 단순 상품 나열 방지
+        # - 시장 위치 기반 전략 제시
         # -------------------------------
-
 
         if gemini_required:
 
-
             try:
 
-
                 avg_rate = sum(
-
-
                     x["rate"]
-
-
                     for x in products
-
-
                 ) / len(products)
 
-
-
-
-
                 highest = max(
-
-
                     products,
-
-
-                    key=lambda x:
-
-
-                        x["rate"]
-
-
+                    key=lambda x: x["rate"]
                 )
-
-
-
-
 
                 lowest = min(
-
-
                     products,
-
-
-                    key=lambda x:
-
-
-                        x["rate"]
-
-
+                    key=lambda x: x["rate"]
                 )
 
-
-
-
-
                 top10_rates = sorted(
-
-
                     products,
-
-
-                    key=lambda x:
-
-
-                        x["rate"],
-
-
+                    key=lambda x: x["rate"],
                     reverse=True
-
-
                 )[:10]
 
+                # -------------------------------
+                # 우리금융 시장정보 생성
+                # Gemini에게 실제 데이터 제공
+                # -------------------------------
+
+                bank_info = None
+
+                if bank_analysis:
+
+                    top10_avg = (
+                        sum(x["rate"] for x in top10_rates)
+                        / len(top10_rates)
+                    )
+
+                    bank_info = {
+
+                        "은행명": target_bank,
+
+                        "대표상품": bank_analysis.get("product"),
+
+                        "현재금리": round(
+                            bank_analysis["rate"],
+                            2
+                        ),
+
+                        "시장순위": bank_analysis["rank"],
+
+                        "전체은행수": bank_analysis["total"],
+
+                        "시장평균금리": round(
+                            avg_rate,
+                            2
+                        ),
+
+                        "평균대비": round(
+                            bank_analysis["avg_gap"],
+                            2
+                        ),
+
+                        "TOP10평균금리": round(
+                            top10_avg,
+                            2
+                        ),
+
+                        "TOP10대비": round(
+                            bank_analysis["rate"] - top10_avg,
+                            2
+                        ),
+
+                        "시장위치(%)": round(
+                            (
+                                bank_analysis["rank"]
+                                / bank_analysis["total"]
+                            ) * 100,
+                            1
+                        )
+
+                    }
 
 
 
+
+
+                # -------------------------------
+                # 우리금융 전략 분석 데이터
+                #
+                # Python 계산 결과를 Gemini 제공
+                # Gemini는 해석 역할 수행
+                # -------------------------------
 
                 market_context = {
 
-
                     "검색기간":
-
-
                         search_period,
 
-
                     "상품수":
-
-
                         len(products),
 
-
                     "시장평균금리":
-
-
                         round(
-
-
                             avg_rate,
-
-
                             2
-
-
                         ),
 
-
                     "최고금리상품":
-
-
                         highest,
 
-
                     "최저금리상품":
-
-
                         lowest,
 
-
                     "TOP10상품":
-
-
                         top10_rates,
 
+                    "우리금융분석":
+                        bank_info,
 
                     "전체상품":
-
-
                         products[:50]
-
 
                 }
 
-
-
-
-
                 market_data = json.dumps(
-
 
                     market_context,
 
+                    ensure_ascii=False,
 
-                    ensure_ascii=False
-
+                    indent=2
 
                 )
 
-
-
-
-
-
+                prompt_type = detect_prompt_type(
+                    question
+                )
 
                 prompt_question = (
-
-
-                    "당신은 저축은행 수신상품 전략 담당자입니다.\n"
-
-                    "경영진에게 보고하는 금융상품 전략 보고서를 작성하세요.\n\n"
-
-
-                    "반드시 제공된 실제 금리 데이터만 활용하세요.\n"
-
-                    "데이터에 없는 사실이나 시장 상황을 임의로 만들지 마세요.\n\n"
-
-
-
-                    "작성 순서는 반드시 아래 기준을 따르세요.\n\n"
-
-
-
-
-                    "■ 우리금융저축은행 대응 핵심 전략\n"
-
-                    "- 보고서 가장 첫 부분 작성\n"
-
-                    "- 2줄 이내 핵심 방향 제시\n"
-
-                    "- 최고금리 추격보다 수익성과 경쟁력을 고려한 전략 제시\n"
-
-                    "- 시장 평균금리 대비 위치와 TOP 경쟁구간을 반영\n"
-
-                    "- 필요 시 적정 금리 운영 구간 제안\n\n"
-
-
-
-
-
-                    "1. 시장 금리 방향 전망\n"
-
-                    "- 평균금리 분석\n"
-
-                    "- 최고/최저 금리 수준 분석\n"
-
-                    "- 금리 경쟁 강도 판단\n"
-
-                    "- 상승 또는 하락 가능성 데이터 기반 설명\n\n"
-
-
-
-
-
-                    "2. 저축은행 경쟁 환경 분석\n"
-
-                    "- 최고금리 경쟁 은행 분석\n"
-
-                    "- TOP10 상품 특징 분석\n"
-
-                    "- 회전정기예금 및 비대면 상품 중심 경쟁 여부 분석\n\n"
-
-
-
-
-
-                    "3. 고객 확보 전략\n"
-
-                    "- 단순 금리 인상 외 차별화 방안 제시\n"
-
-                    "- 디지털 채널 활용 전략\n"
-
-                    "- 신규 고객 및 만기 재예치 고객 전략 제시\n\n"
-
-
-
-
-
-                    "4. 우리금융저축은행 실행 방향\n"
-
-                    "- 현재 시장 위치 고려\n"
-
-                    "- 금리 운영 방향 제안\n"
-
-                    "- 상품 포트폴리오 방향 제안\n"
-
-                    "- 실제 실행 가능한 수준으로 작성\n\n"
-
-
-
-
-
-
-                    "작성 원칙:\n"
-
-                    "- 상품 리스트 단순 나열 금지\n"
-
-                    "- 데이터 기반 분석 우선\n"
-
-                    "- 최고금리만 보고 공격적인 금리 경쟁 제안 금지\n"
-
-                    "- 전략 → 근거 → 실행방향 순서 유지\n"
-
-                    "- 금융회사 경영진 보고서 수준의 전문 문체 유지\n\n"
-
-
-
-
-
-                    "사용자 질문:\n"
-
+                    get_prompt(prompt_type)
+                    + "\n\n"
+                    + "사용자 질문:\n"
                     + question
-
-
                 )
-
-
-
-
-
-
 
                 ai_comment = ask_gemini(
 
-
                     prompt_question,
-
 
                     market_data
 
-
                 )
-
-
-
-
-
-
 
                 answer = (
 
-
                     "🤖 AI 전문가 분석\n\n"
-
 
                     + ai_comment
 
-
                 )
-
-
-
 
 
 
@@ -7796,6 +7816,7 @@ def ai_search():
                     e
 
                 )
+
 
 # ===================================
 # SBRateBot V4 app.py

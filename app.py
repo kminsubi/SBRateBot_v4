@@ -473,7 +473,7 @@ def normalize_question(question):
 
 
 # -------------------------------
-# AI 검색 Intent 판단 V4.8
+# AI 검색 Intent 판단 V5.2
 # -------------------------------
 
 def detect_intent(question):
@@ -482,7 +482,65 @@ def detect_intent(question):
     q = normalize_question(question)
 
 
-        # -------------------------------
+
+    # -------------------------------
+    # 은행 비교 검색 V5.2
+    #
+    # 특정 은행 대비 높은/낮은 곳 검색
+    #
+    # 예:
+    # 우리금융보다 높은 곳
+    # OK보다 좋은 곳
+    # SBI보다 경쟁력 높은 곳
+    # -------------------------------
+
+
+    if any(
+
+
+        x in q
+
+
+        for x in [
+
+
+            "보다 높은",
+
+
+            "보다 낮은",
+
+
+            "보다 좋은",
+
+
+            "보다 나은",
+
+
+            "대비 높은",
+
+
+            "대비 낮은",
+
+
+            "경쟁력 좋은",
+
+
+            "경쟁력 높은"
+
+
+        ]
+
+
+    ):
+
+
+        return "BANK_COMPARE"
+
+
+
+
+
+    # -------------------------------
     # 은행 경쟁력 분석 V5.0
     #
     # 특정 은행 시장 위치 / 경쟁력 질문
@@ -3681,27 +3739,21 @@ def ai_search():
 
             )
 
-# ===================================
-# SBRateBot V4 app.py
-# 7/20
-# ===================================
-
-
-        # -------------------------------
-        # 금리 차이 조건 검색 V4.5.2
-        #
-        # 예)
-        # 대원보다 0.5% 높은곳
-        # 우리금융보다 1% 낮은곳
-        #
-        # 기준:
-        # - 은행별 최고금리 기준
-        # - 전체 저축은행 비교
-        #
-        # 증감 표시:
-        # 증가 : 파란색 + 표시
-        # 감소 : 빨간색 ▲ 표시
-        # -------------------------------
+# -------------------------------
+# 금리 차이 조건 검색 V4.5.2
+#
+# 예)
+# 대원보다 0.5% 높은곳
+# 우리금융보다 1% 낮은곳
+#
+# 기준:
+# - 은행별 최고금리 기준
+# - 전체 저축은행 비교
+#
+# 증감 표시:
+# 증가 : 파란색 + 표시
+# 감소 : 빨간색 ▲ 표시
+# -------------------------------
 
 
         rate_condition = extract_rate_condition(
@@ -3714,8 +3766,8 @@ def ai_search():
 
         condition_answer = None
 
-        
         answer = ""
+
 
 
 
@@ -3727,6 +3779,10 @@ def ai_search():
             and
 
             rate_condition
+
+            and
+
+            intent != "BANK_COMPARE"
 
         ):
 
@@ -3761,6 +3817,7 @@ def ai_search():
                     products
 
                 )
+
 
 
 
@@ -3839,6 +3896,7 @@ def ai_search():
 
 
 
+
                     if candidates:
 
 
@@ -3869,11 +3927,13 @@ def ai_search():
 
                             diff_text = (
 
+
                                 f'<span class="rate-change increase">'
 
                                 f'+{diff:.2f}%p'
 
                                 f'</span>'
+
 
                             )
 
@@ -3926,6 +3986,7 @@ def ai_search():
 
 
                     candidates = [
+
 
                         x
 
@@ -3983,6 +4044,7 @@ def ai_search():
 
 
 
+
                     if candidates:
 
 
@@ -4013,11 +4075,13 @@ def ai_search():
 
                             diff_text = (
 
+
                                 f'<span class="rate-change decrease">'
 
                                 f'▲{diff:.2f}%p'
 
                                 f'</span>'
+
 
                             )
 
@@ -4055,12 +4119,145 @@ def ai_search():
 # ===================================
 
 
-                # -------------------------------
+
+        # -------------------------------
+        # 은행 비교 검색 V5.2
+        # BANK_COMPARE 우선 처리
+        # -------------------------------
+
+
+        if (
+
+
+            intent == "BANK_COMPARE"
+
+
+            and
+
+
+            target_bank
+
+
+        ):
+
+
+            if bank_analysis:
+
+
+
+                base_rate = bank_analysis["rate"]
+
+
+
+                bank_best_rates = get_bank_best_rates(
+
+                    products
+
+                )
+
+
+
+                higher = [
+
+
+                    x
+
+
+                    for x in bank_best_rates
+
+
+                    if x["rate"] > base_rate
+
+
+                    and
+
+
+                    normalize(x["bank"])
+
+                    !=
+
+                    normalize(target_bank)
+
+
+                ]
+
+
+
+                higher.sort(
+
+                    key=lambda x:
+
+                        x["rate"],
+
+                    reverse=True
+
+                )
+
+
+
+                answer = (
+
+
+                    f"📈 {target_bank.replace('저축은행','')}보다 높은 금리 TOP5\n\n"
+
+
+                )
+
+
+
+                if higher:
+
+
+                    for item in higher[:5]:
+
+
+                        answer += (
+
+
+                            f"{item['bank']} "
+
+                            f"{item['rate']:.2f}% "
+
+                            f"(+{item['rate'] - base_rate:.2f}%p)\n"
+
+
+                        )
+
+
+                else:
+
+
+                    answer += (
+
+
+                        "현재 기준 더 높은 금리 상품이 없습니다."
+
+
+                    )
+
+
+
+            else:
+
+
+                answer = (
+
+
+                    f"{target_bank} 은행 정보를 찾을 수 없습니다."
+
+
+                )
+
+
+
+
+
+        # -------------------------------
         # 금리 차이 조건 검색 결과 우선 적용 V4.5.1
         # -------------------------------
 
 
-        if condition_answer:
+        elif condition_answer:
 
 
             answer = condition_answer
@@ -4069,23 +4266,30 @@ def ai_search():
 
 
 
+
         # -------------------------------
-        # 우리금융 경쟁력 우선 처리 V4.8
+        # 은행 경쟁력 분석 V5.0
         # 시장 위치 / TOP10 대비 추가
         # -------------------------------
 
 
         elif (
 
+
             not condition_answer
 
+
             and
+
 
             intent == "COMPETITIVENESS"
 
+
             and
 
+
             target_bank
+
 
         ):
 
@@ -4109,22 +4313,32 @@ def ai_search():
 
                 total = bank_analysis["total"]
 
+
+
+
+
                 # -------------------------------
                 # 시장 포지션 판단 V5.0
                 # 시장순위 기반 상위/중위/하위권 표시
                 # -------------------------------
 
+
                 if rank <= 15:
+
 
                     market_position = "상위권"
 
 
+
                 elif rank <= 50:
+
 
                     market_position = "중위권"
 
 
+
                 else:
+
 
                     market_position = "하위권"
 
@@ -4280,7 +4494,7 @@ def ai_search():
                 answer = (
 
 
-                    "■ 우리금융 경쟁력 분석\n\n"
+                    f"■ {bank_analysis['bank'].replace('저축은행','')} 경쟁력 분석\n\n"
 
 
                     f"기준기간 : {search_period}\n\n"

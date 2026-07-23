@@ -1,44 +1,77 @@
 name: SBRateBot V5 GitHub Actions auto update
 
+
 on:
+
   schedule:
     - cron: "30 15 * * *"
 
   workflow_dispatch:
 
+
+
 permissions:
+
   contents: write
+
 
 
 jobs:
 
   update-rate:
 
+
     runs-on: ubuntu-latest
+
 
 
     steps:
 
+
+      # -------------------------------
+      # Repository Checkout
+      # -------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
 
 
+
+      # -------------------------------
+      # Python Setup
+      # -------------------------------
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.13"
+          cache: "pip"
 
 
+
+      # -------------------------------
+      # Install Packages
+      # -------------------------------
       - name: Install packages
         run: |
+
+          python -m pip install --upgrade pip
+
           pip install requests urllib3
 
 
+
+      # -------------------------------
+      # Run FSB crawler
+      # -------------------------------
       - name: Run FSB crawler
         run: |
+
           python crawler/fsb.py
 
 
+
+      # -------------------------------
+      # Commit updated data
+      # -------------------------------
       - name: Commit updated data
         run: |
 
@@ -46,11 +79,17 @@ jobs:
 
           git config user.email "github-actions@github.com"
 
-          git add data/latest_rates.json
-          git add data/previous_rates.json
-          git add data/update_info.json
-          git add data/banks.json
 
-          git commit -m "Auto update rates" || echo "No changes"
+          git add data/latest_rates.json
+
+          git add data/previous_rates.json
+
+          git add data/update_info.json
+
+          git add -f data/banks.json
+
+
+          git commit -m "Auto update rates" || echo "No changes to commit"
+
 
           git push

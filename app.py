@@ -7537,6 +7537,71 @@ def ai_search():
 
         )
 
+                # -------------------------------
+        # 은행명 금리 조회 우선 처리 V4.9
+        # 은행명 입력 시 해당 은행 상품 먼저 검색
+        # -------------------------------
+
+
+        if not answer and target_bank:
+
+
+            bank_products = find_bank_products(
+
+
+                products,
+
+
+                target_bank
+
+
+            )
+
+
+
+            if bank_products:
+
+
+                bank_products.sort(
+
+
+                    key=lambda x: x["rate"],
+
+
+                    reverse=True
+
+
+                )
+
+
+
+                answer = (
+
+
+                    f"📌 {search_period} {target_bank} 금리 검색 결과\n\n"
+
+
+                )
+
+
+
+                for item in bank_products[:10]:
+
+
+                    answer += (
+
+
+                        f"{item['bank']} "
+
+
+                        f"{item['product']} "
+
+
+                        f"{item['rate']:.2f}%\n"
+
+
+                    )
+
 
 
 

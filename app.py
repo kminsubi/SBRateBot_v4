@@ -482,6 +482,34 @@ def detect_intent(question):
     q = normalize_question(question)
 
 
+        # -------------------------------
+    # 은행 경쟁력 분석 V5.0
+    #
+    # 특정 은행 시장 위치 / 경쟁력 질문
+    # -------------------------------
+
+    if any(
+
+        x in q
+
+        for x in [
+
+            "경쟁력",
+            "시장위치",
+            "시장 위치",
+            "포지션",
+            "어느정도",
+            "어느 정도",
+            "경쟁상황",
+            "경쟁 상황"
+
+        ]
+
+    ):
+
+        return "COMPETITIVENESS"
+
+
 
     # -------------------------------
     # 금융지주 계열 비교 V4.8
@@ -4034,39 +4062,15 @@ def ai_search():
 
         elif (
 
-
             not condition_answer
 
-
             and
-
 
             intent == "COMPETITIVENESS"
 
-
             and
 
-
-            (
-
-
-                "우리금융"
-
-
-                in question
-
-
-                or
-
-
-                "우리금융저축은행"
-
-
-                in question
-
-
-            )
-
+            target_bank
 
         ):
 
@@ -4089,6 +4093,25 @@ def ai_search():
 
 
                 total = bank_analysis["total"]
+
+                                # -------------------------------
+                # 시장 포지션 판단 V5.0
+                # 시장순위 기반 상위/중위/하위권 표시
+                # -------------------------------
+
+                if rank <= 15:
+
+                    market_position = "상위권"
+
+
+                elif rank <= 45:
+
+                    market_position = "중위권"
+
+
+                else:
+
+                    market_position = "하위권"
 
 
 
@@ -4267,10 +4290,7 @@ def ai_search():
                     f"현재금리 : {rate:.2f}%\n\n"
 
 
-                    f"시장순위 : {rank}위 / {total}개사\n\n"
-
-
-                    f"시장 위치 : 상위 {position}%\n\n"
+                    f"시장 포지션 : {market_position} ({rank}위 / {total}개사)\n\n"
 
 
                     f"평균금리 대비 : {gap_text}\n\n"

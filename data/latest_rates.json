@@ -23,9 +23,9 @@
         "change_1": 0.0,
         "change_3": 0.0,
         "change_6": 0.0,
-        "change_12": -0.1,
-        "change_24": -0.1,
-        "change_36": -0.1
+        "change_12": 0.0,
+        "change_24": 0.0,
+        "change_36": 0.0
     },
     {
         "bank": "애큐온",
@@ -51,9 +51,9 @@
         "change_1": 0,
         "change_3": 0,
         "change_6": 0,
-        "change_12": -0.1,
-        "change_24": -0.1,
-        "change_36": -0.1
+        "change_12": 0.0,
+        "change_24": 0.0,
+        "change_36": 0.0
     },
     {
         "bank": "애큐온",
@@ -79,7 +79,7 @@
         "change_1": 0,
         "change_3": 0,
         "change_6": 0,
-        "change_12": -0.1,
+        "change_12": 0.0,
         "change_24": 0,
         "change_36": 0
     },
@@ -107,9 +107,9 @@
         "change_1": 0,
         "change_3": 0,
         "change_6": 0,
-        "change_12": -0.1,
-        "change_24": -0.1,
-        "change_36": -0.1
+        "change_12": 0.0,
+        "change_24": 0.0,
+        "change_36": 0.0
     },
     {
         "bank": "애큐온",
@@ -135,7 +135,7 @@
         "change_1": 0,
         "change_3": 0,
         "change_6": 0,
-        "change_12": -0.1,
+        "change_12": 0.0,
         "change_24": 0,
         "change_36": 0
     },
@@ -163,7 +163,7 @@
         "change_1": 0,
         "change_3": 0,
         "change_6": 0,
-        "change_12": -0.1,
+        "change_12": 0.0,
         "change_24": 0,
         "change_36": 0
     },
@@ -219,8 +219,8 @@
         "change_1": 0,
         "change_3": 0,
         "change_6": 0,
-        "change_12": -0.1,
-        "change_24": -0.1,
+        "change_12": 0.0,
+        "change_24": 0.0,
         "change_36": 0
     },
     {
@@ -246,7 +246,7 @@
         "tel": "15886161",
         "change_1": 0,
         "change_3": 0,
-        "change_6": -0.1,
+        "change_6": 0.0,
         "change_12": 0,
         "change_24": 0,
         "change_36": 0
@@ -274,7 +274,7 @@
         "tel": "15886161",
         "change_1": 0,
         "change_3": 0,
-        "change_6": -0.1,
+        "change_6": 0.0,
         "change_12": 0,
         "change_24": 0,
         "change_36": 0
@@ -1563,7 +1563,7 @@
         "change_1": 0.0,
         "change_3": 0.0,
         "change_6": 0.0,
-        "change_12": -0.2,
+        "change_12": 0.0,
         "change_24": 0.0,
         "change_36": 0.0
     },
@@ -2627,8 +2627,8 @@
         "change_1": 0.0,
         "change_3": 0.0,
         "change_6": 0.0,
-        "change_12": -0.2,
-        "change_24": -0.45,
+        "change_12": 0.0,
+        "change_24": 0.0,
         "change_36": 0
     },
     {
@@ -2655,7 +2655,7 @@
         "change_1": 0.0,
         "change_3": 0.0,
         "change_6": 0.0,
-        "change_12": -0.2,
+        "change_12": 0.0,
         "change_24": 0.0,
         "change_36": 0
     },
@@ -2683,7 +2683,7 @@
         "change_1": 0.0,
         "change_3": 0.0,
         "change_6": 0.0,
-        "change_12": -0.2,
+        "change_12": 0.0,
         "change_24": 0.0,
         "change_36": 0
     },
@@ -2711,7 +2711,7 @@
         "change_1": 0.0,
         "change_3": 0.0,
         "change_6": 0.0,
-        "change_12": -0.2,
+        "change_12": 0.0,
         "change_24": 0.0,
         "change_36": 0
     },
@@ -2739,8 +2739,8 @@
         "change_1": 0.0,
         "change_3": 0.0,
         "change_6": 0.0,
-        "change_12": -0.2,
-        "change_24": -0.45,
+        "change_12": 0.0,
+        "change_24": 0.0,
         "change_36": 0
     },
     {
@@ -4195,7 +4195,7 @@
         "change_1": 0.0,
         "change_3": 0.0,
         "change_6": 0.0,
-        "change_12": -0.2,
+        "change_12": 0.0,
         "change_24": 0.0,
         "change_36": 0.0
     },
@@ -4223,7 +4223,7 @@
         "change_1": 0.0,
         "change_3": 0.0,
         "change_6": 0.0,
-        "change_12": -0.2,
+        "change_12": 0.0,
         "change_24": 0.0,
         "change_36": 0.0
     },
@@ -6211,8 +6211,8 @@
         "change_1": 0.0,
         "change_3": 0.0,
         "change_6": 0.0,
-        "change_12": -0.2,
-        "change_24": -0.4,
+        "change_12": 0.0,
+        "change_24": 0.0,
         "change_36": 0.0
     },
     {
@@ -6267,7 +6267,7 @@
         "change_1": 0,
         "change_3": 0,
         "change_6": 0.0,
-        "change_12": -0.2,
+        "change_12": 0.0,
         "change_24": 0,
         "change_36": 0
     },
@@ -6295,8 +6295,8 @@
         "change_1": 0.0,
         "change_3": 0.0,
         "change_6": 0.0,
-        "change_12": -0.2,
-        "change_24": -0.4,
+        "change_12": 0.0,
+        "change_24": 0.0,
         "change_36": 0.0
     },
     {
@@ -7331,7 +7331,7 @@
         "change_1": 0.0,
         "change_3": 0.0,
         "change_6": 0.0,
-        "change_12": -0.1,
+        "change_12": 0.0,
         "change_24": 0.0,
         "change_36": 0
     },
@@ -7918,8 +7918,8 @@
         "tel": "0542754060",
         "change_1": 0,
         "change_3": 0,
-        "change_6": -0.2,
-        "change_12": -0.1,
+        "change_6": 0.0,
+        "change_12": 0.0,
         "change_24": 0,
         "change_36": 0
     },
@@ -7946,8 +7946,8 @@
         "tel": "0542754060",
         "change_1": 0,
         "change_3": 0,
-        "change_6": -0.2,
-        "change_12": -0.1,
+        "change_6": 0.0,
+        "change_12": 0.0,
         "change_24": 0,
         "change_36": 0
     },
@@ -7977,7 +7977,7 @@
         "change_6": 0,
         "change_12": 0,
         "change_24": 0,
-        "change_36": -0.1
+        "change_36": 0.0
     },
     {
         "bank": "머스트삼일",
@@ -8005,7 +8005,7 @@
         "change_6": 0,
         "change_12": 0,
         "change_24": 0,
-        "change_36": -0.1
+        "change_36": 0.0
     },
     {
         "bank": "오성",
@@ -8283,7 +8283,7 @@
         "change_1": 0.0,
         "change_3": 0.0,
         "change_6": 0.0,
-        "change_12": -0.1,
+        "change_12": 0.0,
         "change_24": 0.0,
         "change_36": 0
     },
@@ -8311,7 +8311,7 @@
         "change_1": 0.0,
         "change_3": 0.0,
         "change_6": 0.0,
-        "change_12": -0.2,
+        "change_12": 0.0,
         "change_24": 0.0,
         "change_36": 0
     },
@@ -8339,7 +8339,7 @@
         "change_1": 0.0,
         "change_3": 0.0,
         "change_6": 0.0,
-        "change_12": -0.2,
+        "change_12": 0.0,
         "change_24": 0.0,
         "change_36": 0
     },
@@ -10019,7 +10019,7 @@
         "change_1": 0,
         "change_3": 0,
         "change_6": 0,
-        "change_12": -0.1,
+        "change_12": 0.0,
         "change_24": 0,
         "change_36": 0
     },
@@ -10074,10 +10074,10 @@
         "tel": "15990060",
         "change_1": 0.0,
         "change_3": 0.0,
-        "change_6": -0.1,
-        "change_12": -0.1,
-        "change_24": -0.1,
-        "change_36": -0.1
+        "change_6": 0.0,
+        "change_12": 0.0,
+        "change_24": 0.0,
+        "change_36": 0.0
     },
     {
         "bank": "신한",

@@ -1675,7 +1675,7 @@
         "change_1": 0.0,
         "change_3": 0.0,
         "change_6": 0.0,
-        "change_12": 0.05,
+        "change_12": 0.0,
         "change_24": 0.0,
         "change_36": 0.0
     },
@@ -1703,7 +1703,7 @@
         "change_1": 0.0,
         "change_3": 0.0,
         "change_6": 0.0,
-        "change_12": 0.05,
+        "change_12": 0.0,
         "change_24": 0.0,
         "change_36": 0.0
     },
@@ -2515,7 +2515,7 @@
         "change_1": 0.0,
         "change_3": 0.0,
         "change_6": 0.0,
-        "change_12": -0.15,
+        "change_12": 0.0,
         "change_24": 0.0,
         "change_36": 0
     },
@@ -2543,7 +2543,7 @@
         "change_1": 0.0,
         "change_3": 0.0,
         "change_6": 0.0,
-        "change_12": -0.1,
+        "change_12": 0.0,
         "change_24": 0,
         "change_36": 0
     },
@@ -3383,7 +3383,7 @@
         "change_1": 0.0,
         "change_3": 0.0,
         "change_6": 0.0,
-        "change_12": 0.1,
+        "change_12": 0.0,
         "change_24": 0.0,
         "change_36": 0
     },
@@ -3411,7 +3411,7 @@
         "change_1": 0.0,
         "change_3": 0.0,
         "change_6": 0.0,
-        "change_12": 0.1,
+        "change_12": 0.0,
         "change_24": 0.0,
         "change_36": 0
     },
@@ -3439,7 +3439,7 @@
         "change_1": 0.0,
         "change_3": 0.0,
         "change_6": 0.0,
-        "change_12": 0.1,
+        "change_12": 0.0,
         "change_24": 0.0,
         "change_36": 0
     },
@@ -3467,9 +3467,9 @@
         "change_1": 0,
         "change_3": 0,
         "change_6": 0,
-        "change_12": 0.1,
+        "change_12": 0.0,
         "change_24": 0,
-        "change_36": 0.1
+        "change_36": 0.0
     },
     {
         "bank": "안국",
@@ -3495,9 +3495,9 @@
         "change_1": 0,
         "change_3": 0,
         "change_6": 0,
-        "change_12": 0.1,
+        "change_12": 0.0,
         "change_24": 0,
-        "change_36": 0.1
+        "change_36": 0.0
     },
     {
         "bank": "안국",
@@ -3523,9 +3523,9 @@
         "change_1": 0,
         "change_3": 0,
         "change_6": 0,
-        "change_12": 0.1,
+        "change_12": 0.0,
         "change_24": 0,
-        "change_36": 0.1
+        "change_36": 0.0
     },
     {
         "bank": "남양",
@@ -4139,7 +4139,7 @@
         "change_1": 0.0,
         "change_3": 0.0,
         "change_6": 0.0,
-        "change_12": -0.1,
+        "change_12": 0.0,
         "change_24": 0.0,
         "change_36": 0.0
     },
@@ -4167,7 +4167,7 @@
         "change_1": 0.0,
         "change_3": 0.0,
         "change_6": 0.0,
-        "change_12": -0.1,
+        "change_12": 0.0,
         "change_24": 0.0,
         "change_36": 0.0
     },
@@ -4308,7 +4308,7 @@
         "change_3": 0.0,
         "change_6": 0.0,
         "change_12": 0.0,
-        "change_24": -0.04,
+        "change_24": 0.0,
         "change_36": 0.0
     },
     {
@@ -4336,7 +4336,7 @@
         "change_3": 0.0,
         "change_6": 0.0,
         "change_12": 0.0,
-        "change_24": -0.04,
+        "change_24": 0.0,
         "change_36": 0.0
     },
     {
@@ -4364,7 +4364,7 @@
         "change_3": 0.0,
         "change_6": 0.0,
         "change_12": 0.0,
-        "change_24": -0.04,
+        "change_24": 0.0,
         "change_36": 0.0
     },
     {
@@ -6463,7 +6463,7 @@
         "change_1": 0,
         "change_3": 0,
         "change_6": 0,
-        "change_12": -0.09,
+        "change_12": 0.0,
         "change_24": 0,
         "change_36": 0
     },
@@ -6491,7 +6491,7 @@
         "change_1": 0,
         "change_3": 0,
         "change_6": 0,
-        "change_12": -0.09,
+        "change_12": 0.0,
         "change_24": 0,
         "change_36": 0
     },
@@ -6519,7 +6519,7 @@
         "change_1": 0,
         "change_3": 0,
         "change_6": 0,
-        "change_12": -0.09,
+        "change_12": 0.0,
         "change_24": 0,
         "change_36": 0
     },
@@ -6577,7 +6577,7 @@
         "change_6": 0,
         "change_12": 0,
         "change_24": 0,
-        "change_36": -0.08
+        "change_36": 0.0
     },
     {
         "bank": "상상인플러스",
@@ -6605,7 +6605,7 @@
         "change_6": 0,
         "change_12": 0,
         "change_24": 0,
-        "change_36": -0.08
+        "change_36": 0.0
     },
     {
         "bank": "상상인플러스",
@@ -6633,7 +6633,7 @@
         "change_6": 0,
         "change_12": 0,
         "change_24": 0,
-        "change_36": -0.08
+        "change_36": 0.0
     },
     {
         "bank": "상상인플러스",
@@ -6743,8 +6743,8 @@
         "change_1": 0,
         "change_3": 0,
         "change_6": 0,
-        "change_12": -0.1,
-        "change_24": -0.05,
+        "change_12": 0.0,
+        "change_24": 0.0,
         "change_36": 0
     },
     {
@@ -6799,8 +6799,8 @@
         "change_1": 0,
         "change_3": 0,
         "change_6": 0,
-        "change_12": -0.1,
-        "change_24": -0.05,
+        "change_12": 0.0,
+        "change_24": 0.0,
         "change_36": 0
     },
     {
@@ -6855,8 +6855,8 @@
         "change_1": 0,
         "change_3": 0,
         "change_6": 0,
-        "change_12": -0.1,
-        "change_24": -0.05,
+        "change_12": 0.0,
+        "change_24": 0.0,
         "change_36": 0
     },
     {
@@ -6913,7 +6913,7 @@
         "change_6": 0,
         "change_12": 0,
         "change_24": 0,
-        "change_36": -0.08
+        "change_36": 0.0
     },
     {
         "bank": "상상인플러스",
@@ -6941,7 +6941,7 @@
         "change_6": 0,
         "change_12": 0,
         "change_24": 0,
-        "change_36": -0.08
+        "change_36": 0.0
     },
     {
         "bank": "상상인플러스",
@@ -6969,7 +6969,7 @@
         "change_6": 0,
         "change_12": 0,
         "change_24": 0,
-        "change_36": -0.08
+        "change_36": 0.0
     },
     {
         "bank": "아산",
